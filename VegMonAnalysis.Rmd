@@ -1,0 +1,74 @@
+---
+title: "Vegetation Monitoring Analysis"
+author: "Manhatton"
+date: "2/3/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+##install packages
+#install.packages('skimr', repos = "http://cran.us.r-project.org")
+#install.packages('kableExtra', repos = "http://cran.us.r-project.org")
+#install.packages('janitor', repos = "http://cran.us.r-project.org")
+
+## attach libraries
+library(tidyverse)
+library(readxl)
+library(janitor)
+library(here)
+library(skimr)  
+library(kableExtra)  
+
+## reads data from a single xls
+
+x <- "LHHL5p.xlsx" ## assign variable to target filename
+
+woody <- read_xlsx(here("data", "LHHL5p.xlsx"), sheet = "Woody", skip = 8)%>%
+  janitor::clean_names() %>%
+  janitor::remove_empty(c("rows"))
+
+forbs <- read_xlsx(here("data", x), sheet = "Forbs", skip = 8)%>%
+  janitor::clean_names() %>%
+  janitor::remove_empty(c("rows"))
+
+grasses <- read_xlsx(here("data", x), sheet = "Grasses", skip = 8)%>%
+  janitor::clean_names() %>%
+  janitor::remove_empty(c("rows"))
+
+relevecode <- read_xlsx(here("data", "LHHL5p.xlsx"), sheet = "Woody", range = "C2:C2")
+
+
+## append woody, forb and grass tables together add column containing survey code (from Woody cell C2)
+
+data_frame = bind_rows(woody, forbs, grasses)%>%
+  bind_cols(...,releveCode = relevecode, z=)
+
+head(data_frame)
+
+#write.csv(data_frame, "\\data\\LHHLsample.csv", row.names = FALSE)
+
+
+
+```
+
+## R Markdown
+
+Project to do:
+-read 2020 and 2021 releve data
+-read GRG reference (ordination folder)
+-Table: Releve, Species, Midpoint % Cover (column M)
+-For our data: Need to add name column to each - in C2 of Woody tab - add column (2020, 2021)
+-For GRG data: the name will be in the 
+-Pull in the Compiled Releve Data for R, sheet1 - add year column
+-Create matrix
+
+
+```{r df}
+print(code)
+summary(data_frame)
+head(data_frame)
+
+```
+
