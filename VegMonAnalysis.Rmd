@@ -17,13 +17,20 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(readxl)
 library(janitor)
+library(dplyr)
 library(here)
+
 library(skimr)  
 library(kableExtra)  
+
+##
+
 
 ## reads data from a single xls
 
 x <- "LHHL5p.xlsx" ## assign variable to target filename
+
+relevecode <- read_xlsx(here("data", "LHHL5p.xlsx"), sheet = "Woody", range = "C2:C2", col_names = FALSE) #grabs the relevecode from C2 of Woody sheet
 
 woody <- read_xlsx(here("data", "LHHL5p.xlsx"), sheet = "Woody", skip = 8)%>%
   janitor::clean_names() %>%
@@ -37,17 +44,13 @@ grasses <- read_xlsx(here("data", x), sheet = "Grasses", skip = 8)%>%
   janitor::clean_names() %>%
   janitor::remove_empty(c("rows"))
 
-relevecode <- read_xlsx(here("data", "LHHL5p.xlsx"), sheet = "Woody", range = "C2:C2")
-
-
 ## append woody, forb and grass tables together add column containing survey code (from Woody cell C2)
 
-data_frame = bind_rows(woody, forbs, grasses)%>%
-  bind_cols(...,releveCode = relevecode, z=)
+data_frame = (bind_rows(woody, forbs, grasses))
+  
+data_frame['releveCode'] = list(relevecode[[1,1]]) #double bracket removes value from the df
 
-head(data_frame)
 
-#write.csv(data_frame, "\\data\\LHHLsample.csv", row.names = FALSE)
 
 
 
@@ -60,10 +63,26 @@ Project to do:
 -read GRG reference (ordination folder)
 -Table: Releve, Species, Midpoint % Cover (column M)
 -For our data: Need to add name column to each - in C2 of Woody tab - add column (2020, 2021)
--For GRG data: the name will be in the 
+-For GRG data: the name will be in the NPC Code
 -Pull in the Compiled Releve Data for R, sheet1 - add year column
 -Create matrix
 
+-find all xls in directory (list all files)
+-store as array
+-1. loop or 2. create function 
+
+extract_data <- function(x){
+  # code for extracting data using filename x
+  return(df)
+}
+
+all_df <- extract_data(filenames[1])
+
+for (x in filenames[-1]){
+  single_df <- extract_data(x)
+  all_df <- rbind(all_df, single_df)
+}
+}
 
 ```{r df}
 print(code)
