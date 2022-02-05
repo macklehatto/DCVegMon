@@ -23,7 +23,38 @@ library(here)
 library(skimr)  
 library(kableExtra)  
 
-##
+##Find all xlsx within directory
+ file.list <- list.files(here("Data"), pattern = '*.xlsx', full.names = TRUE)
+
+ extract_data <- function(x)
+{
+woody <- read_xlsx(here("data", x), sheet = "Woody", skip = 8)%>%
+  janitor::clean_names() %>%
+  janitor::remove_empty(c("rows"))
+
+forbs <- read_xlsx(here("data", x), sheet = "Forbs", skip = 8)%>%
+  janitor::clean_names() %>%
+  janitor::remove_empty(c("rows"))
+
+grasses <- read_xlsx(here("data", x), sheet = "Grasses", skip = 8)%>%
+  janitor::clean_names() %>%
+  janitor::remove_empty(c("rows"))
+
+relevecode <- read_xlsx(here("data", x), sheet = "Woody", range = "C2:C2", col_names = FALSE) #grabs the relevecode from C2 of Woody sheet
+
+data_frame = (bind_rows(woody, forbs, grasses))
+  
+data_frame['releveCode'] = list(relevecode[[1,1]])
+  
+  return(df)
+}
+
+all_df <- data.frame("scientific_name"=character(), "common_name"=character(), "x3" =numeric(), "physiognamy"=character(), "mn_nativity" = character(), "mnwi"= character(), "rarity_status" = character(), "id" = character(), "cc" = numeric(), "cc_range" = character(), "x12" = numeric(), "midpoint_cc"= numeric(), "p" = numeric(), "p_c" = numeric(), releveCode = character()) # schema for final table (same schema as single_df)
+
+for (x in file.list){
+  single_df <- extract_data(x)
+  all_df <- rbind(all_df, single_df)
+}
 
 
 ## reads data from a single xls
