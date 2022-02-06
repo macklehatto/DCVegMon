@@ -23,74 +23,77 @@ library(here)
 library(skimr)  
 library(kableExtra)  
 
-##Find all xlsx within directory
- file.list <- list.files(here("Data"), pattern = '*.xlsx', full.names = TRUE)
+
+##Find all releve xlsx within directory
+file.list <- list.files("C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R practice\\DCVegMon\\data\\", pattern = '*.xlsx', full.names = TRUE)
+
+## Extract data from woody, forbs and grasses worksheets
 
  extract_data <- function(x)
 {
-woody <- read_xlsx(here("data", x), sheet = "Woody", skip = 8)%>%
+woody <- read_xlsx(x, sheet = "Woody", skip = 8)%>%
   janitor::clean_names() %>%
-  janitor::remove_empty(c("rows"))
+  janitor::remove_empty(c("rows"))%>%
+  mutate(rarity_status = as.character(rarity_status)) %>%
+  select("scientific_name", "common_name", "x3" , "physiognamy", "mn_nativity", "mnwi", "rarity_status" = , "id" , "cc" , "cc_range", "x12" , "midpoint_cc", "p", "p_c")
 
-forbs <- read_xlsx(here("data", x), sheet = "Forbs", skip = 8)%>%
-  janitor::clean_names() %>%
-  janitor::remove_empty(c("rows"))
-
-grasses <- read_xlsx(here("data", x), sheet = "Grasses", skip = 8)%>%
-  janitor::clean_names() %>%
-  janitor::remove_empty(c("rows"))
-
-relevecode <- read_xlsx(here("data", x), sheet = "Woody", range = "C2:C2", col_names = FALSE) #grabs the relevecode from C2 of Woody sheet
-
-data_frame = (bind_rows(woody, forbs, grasses))
+forbs <- read_xlsx(x, sheet = "Forbs", skip = 8)%>%
+ janitor::clean_names() %>%
+ janitor::remove_empty(c("rows"))%>%
+ mutate(rarity_status = as.character(rarity_status))  %>%
+ select("scientific_name", "common_name", "x3" , "physiognamy", "mn_nativity", "mnwi", "rarity_status" = , "id" , "cc" , "cc_range", "x12" , "midpoint_cc", "p", "p_c")
   
-data_frame['releveCode'] = list(relevecode[[1,1]])
+grasses <- read_xlsx(x, sheet = "Grasses", skip = 8)%>%
+  janitor::clean_names() %>%
+  janitor::remove_empty(c("rows"))%>%
+  mutate(rarity_status = as.character(rarity_status)) %>%
+  select("scientific_name", "common_name", "x3" , "physiognamy", "mn_nativity", "mnwi", "rarity_status" = , "id" , "cc" , "cc_range", "x12" , "midpoint_cc", "p", "p_c")
+
+relevecode <- read_xlsx(x, sheet = "Woody", range = "C2:C2", col_names = FALSE) #grabs the relevecode from C2 of Woody sheet
+print(relevecode)
+
+ data_frame <- (bind_rows(woody, forbs, grasses)) #combine the woody, forbs, and grasses data rows
+
+ data_frame['releveCode'] <- list(relevecode[[1,1]]) #assign value from woody cell C2 to new column in combined dataframe (indicates releve code)
   
-  return(df)
+  return(data_frame)
 }
 
-all_df <- data.frame("scientific_name"=character(), "common_name"=character(), "x3" =numeric(), "physiognamy"=character(), "mn_nativity" = character(), "mnwi"= character(), "rarity_status" = character(), "id" = character(), "cc" = numeric(), "cc_range" = character(), "x12" = numeric(), "midpoint_cc"= numeric(), "p" = numeric(), "p_c" = numeric(), releveCode = character()) # schema for final table (same schema as single_df)
+##create empty dataframe with all the required columns
+ 
+all_df <- data.frame("scientific_name"=character(), "common_name"=character(), "x3" =numeric(), "physiognamy"=character(), "mn_nativity" = character(), "mnwi"= character(), "rarity_status" = character(), "id" = character(), "cc" = numeric(), "cc_range" = character(), "x12" = numeric(), "midpoint_cc"= numeric(), "p" = numeric(), "p_c" = numeric(), releveCode = character()) 
+
+##loop through all files in the folder 
 
 for (x in file.list){
+  print(x)
   single_df <- extract_data(x)
   all_df <- rbind(all_df, single_df)
 }
 
+##removes all rows with greater than 10 "NA" cells 
 
-## reads data from a single xls
+hi <- apply(all_df, 1, function(x) sum(is.na(x)))
 
-x <- "LHHL5p.xlsx" ## assign variable to target filename
+all_df <- all_df[hi<10,]
 
-relevecode <- read_xlsx(here("data", "LHHL5p.xlsx"), sheet = "Woody", range = "C2:C2", col_names = FALSE) #grabs the relevecode from C2 of Woody sheet
+##checking that everything imported
 
-woody <- read_xlsx(here("data", "LHHL5p.xlsx"), sheet = "Woody", skip = 8)%>%
-  janitor::clean_names() %>%
-  janitor::remove_empty(c("rows"))
+all_df %>% group_by(releveCode) %>% count()
+check <- all_df %>% group_by(releveCode) %>% count()
 
-forbs <- read_xlsx(here("data", x), sheet = "Forbs", skip = 8)%>%
-  janitor::clean_names() %>%
-  janitor::remove_empty(c("rows"))
+##create new dataframe with just the scientific name, midpoint % cover, releve 
 
-grasses <- read_xlsx(here("data", x), sheet = "Grasses", skip = 8)%>%
-  janitor::clean_names() %>%
-  janitor::remove_empty(c("rows"))
-
-## append woody, forb and grass tables together add column containing survey code (from Woody cell C2)
-
-data_frame = (bind_rows(woody, forbs, grasses))
-  
-data_frame['releveCode'] = list(relevecode[[1,1]]) #double bracket removes value from the df
-
-
-
-
+ordination_df <- 
 
 ```
+
+
 
 ## R Markdown
 
 Project to do:
--read 2020 and 2021 releve data
+xread 2020 and 2021 releve data
 -read GRG reference (ordination folder)
 -Table: Releve, Species, Midpoint % Cover (column M)
 -For our data: Need to add name column to each - in C2 of Woody tab - add column (2020, 2021)
