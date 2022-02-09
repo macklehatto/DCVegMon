@@ -55,7 +55,6 @@ grasses <- read_xlsx(x, sheet = "Grasses", skip = 8)%>%
   select("scientific_name", "common_name", "x3" , "physiognamy", "mn_nativity", "mnwi", "rarity_status" = , "id" , "cc" , "cc_range", "x12" , "midpoint_cc", "p", "p_c")
 
 relevecode <- read_xlsx(x, sheet = "Woody", range = "C2:C2", col_names = FALSE) #grabs the relevecode from C2 of Woody sheet
-print(relevecode)
 
  data_frame <- (bind_rows(woody, forbs, grasses)) #combine the woody, forbs, and grasses data rows
 
@@ -64,7 +63,7 @@ print(relevecode)
   return(data_frame)
 }
 
-##create empty dataframe with all the required columns
+ ##create empty dataframe with all the required columns
  
 all_df <- data.frame("scientific_name"=character(), "common_name"=character(), "x3" =numeric(), "physiognamy"=character(), "mn_nativity" = character(), "mnwi"= character(), "rarity_status" = character(), "id" = character(), "cc" = numeric(), "cc_range" = character(), "x12" = numeric(), "midpoint_cc"= numeric(), "p" = numeric(), "p_c" = numeric(), releveCode = character()) 
 
@@ -120,22 +119,32 @@ for (x in file.list){
   single_file2 <- extract_data(x)
   IndexFile <- rbind(IndexFile, single_file2)
 }
-print(IndexFile)
+
+## Compare the Index File to the releve codes that have been imported from excel. Report missing files
+All <-unique(all_df$releveCode)
+Index <- unique(IndexFile$...2)
+Missing <- Index[!(Index %in% All)]
+
+print(Missing)
+#print(IndexFile)
 
 ```
 
+## OH NOS!
+The following releves have issues. Check for blank/missing data in the observations worksheets.
 
-
-
+```{r uhoh , echo=false}
+print(Missing)
+```
 ## Project To Do:
 
-xread 2020 and 2021 releve data
--read GRG reference (ordination folder)
--Table: Releve, Species, Midpoint % Cover (column M)
--For our data: Need to add name column to each - in C2 of Woody tab - add column (2020, 2021)
--For GRG data: the name will be in the NPC Code
--Pull in the Compiled Releve Data for R, sheet1 - add year column
--Create matrix
+*xread 2020 and 2021 releve data
+*-read GRG reference (ordination folder)
+*-Table: Releve, Species, Midpoint % Cover (column M)
+*-For our data: Need to add name column to each - in C2 of Woody tab - add column (2020, 2021)
+*-For GRG data: the name will be in the NPC Code
+*-Pull in the Compiled Releve Data for R, sheet1 - add year column
+*-Create matrix
 
 
 ```{r df}
