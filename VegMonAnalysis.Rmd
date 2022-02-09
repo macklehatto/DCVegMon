@@ -21,6 +21,10 @@ library(dplyr)
 library(here) # this was being buggy in the extract function so I removed it
 library(skimr)  # not used so far
 library(kableExtra)  #not used so far
+```
+
+
+``` {r DCrelevedata, include = false}
 
 ## Change this to the filepath for the data directory
 
@@ -57,13 +61,17 @@ relevecode <- read_xlsx(x, sheet = "Woody", range = "C2:C2", col_names = FALSE) 
  data_frame <- (bind_rows(woody, forbs, grasses)) #combine the woody, forbs, and grasses data rows
 
  data_frame['releveCode'] <- list(relevecode[[1,1]]) #assign value from woody cell C2 to new column in combined dataframe (indicates releve code)
+ 
+ ##getting the year out of the releve code
+ n_last <- 4
+ data_frame ['releveyear'] <- substr(relevecode, nchar(relevecode)-n_last + 1, nchar(relevecode) )
   
   return(data_frame)
 }
 
  ##create empty dataframe with all the required columns
  
-all_df <- data.frame("scientific_name"=character(), "common_name"=character(), "x3" =numeric(), "physiognamy"=character(), "mn_nativity" = character(), "mnwi"= character(), "rarity_status" = character(), "id" = character(), "cc" = numeric(), "cc_range" = character(), "x12" = numeric(), "midpoint_cc"= numeric(), "p" = numeric(), "p_c" = numeric(), releveCode = character()) 
+all_df <- data.frame("scientific_name"=character(), "common_name"=character(), "x3" =numeric(), "physiognamy"=character(), "mn_nativity" = character(), "mnwi"= character(), "rarity_status" = character(), "id" = character(), "cc" = numeric(), "cc_range" = character(), "x12" = numeric(), "midpoint_cc"= numeric(), "p" = numeric(), "p_c" = numeric(), releveCode = character(), releveyear = numeric()) 
 
 ##loop through all files in the folder 
 
@@ -80,7 +88,14 @@ all_df <- all_df[hi<10,]
 
 ```
 
-```{r ReferenceSiteData, include=FALSE}
+``` {r DC_Old_Data, include = false}
+## I was going to pull in the data that was processed in 2019 for the ordination project, but can we just put the original "Analyzed Data" files in with the 2020 and 2021 spreadsheets and use the code in DCrelevedata chunk? That would be easier :) Unless the format of the original .xls files has changed...
+
+```
+
+``` {r ReferenceSiteData, include=FALSE}
+
+## This is the code to load in the GRG Reference Site Data ---------------------
 
 ## change this to the correct directory
 refdir <- "C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R practice\\DCVegMon\\data\\GRG Reference"
@@ -90,7 +105,6 @@ file.list <- list.files(refdir, pattern = '*.xlsx', full.names = TRUE)
 ref_extract <- function(y)
 { 
   refdata <- read_xlsx(y, sheet= 1, skip = 1, col_names = TRUE) %>%
-    #janitor::clean_names() %>%
     janitor::remove_empty(c("rows"))%>%
     select("Genus", "Species", "3Freq" , "4Abund", "5Index")
   
@@ -110,13 +124,17 @@ for (y in file.list){
   all_ref <- rbind(all_ref, single_ref)
 }
 
-```
+##removes all rows with greater than 4 "NA" cells 
 
+empties <- apply(all_ref, 1, function(x) sum(is.na(x)))
+all_ref <- all_ref[empties<4,]
+
+```
 
 ``` {r ordination}
 ##create new dataframe with just the scientific name, midpoint % cover, releve 
 
-#ordination_df <- 
+#dc_ord_df <- all_df() 
 
 ```
 
@@ -172,11 +190,12 @@ print(Missing)
 ## Project To Do:
 
 *xread 2020 and 2021 releve data
-*-read GRG reference (ordination folder)
-*-Table: Releve, Species, Midpoint % Cover (column M)
-*-For our data: Need to add name column to each - in C2 of Woody tab - add column (2020, 2021)
-*-For GRG data: the name will be in the NPC Code
+*xread GRG reference (ordination folder)
+*-Table: Releve, Species, Midpoint % Cover (column M), year
+*xFor our data: Need to add name column to each - in C2 of Woody tab *xadd column (2020, 2021)
+*xFor GRG data: the name will be in the NPC Code or whatevers in A1
 *-Pull in the Compiled Releve Data for R, sheet1 - add year column
+    +oy, see note in DC_Old_Data chunk
 *-Create matrix
 
 
