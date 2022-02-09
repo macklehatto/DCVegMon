@@ -18,11 +18,9 @@ library(tidyverse)
 library(readxl)
 library(janitor)
 library(dplyr)
-library(here)
-
-library(skimr)  
-library(kableExtra)  
-
+library(here) # this was being buggy in the extract function so I removed it
+library(skimr)  # not used so far
+library(kableExtra)  #not used so far
 
 ## Change this to the filepath for the data directory
 
@@ -80,13 +78,47 @@ for (x in file.list){
 hi <- apply(all_df, 1, function(x) sum(is.na(x)))
 all_df <- all_df[hi<10,]
 
+```
+
+```{r ReferenceSiteData, include=FALSE}
+
+## change this to the correct directory
+refdir <- "C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R practice\\DCVegMon\\data\\GRG Reference"
+
+file.list <- list.files(refdir, pattern = '*.xlsx', full.names = TRUE)
+
+ref_extract <- function(y)
+{ 
+  refdata <- read_xlsx(y, sheet= 1, skip = 1, col_names = TRUE) %>%
+    #janitor::clean_names() %>%
+    janitor::remove_empty(c("rows"))%>%
+    select("Genus", "Species", "3Freq" , "4Abund", "5Index")
+  
+  refcode <- read_xlsx(y, sheet = 1, range = "A1:A1", col_names = FALSE)
+  refcode <- list(refcode[[1,1]])
+  
+  df<- bind_cols(refdata, refcode)
+  
+  return(df)
+}
+
+all_ref <- data.frame("genus" = character(), "species" = character(), "freq" = numeric() , "abund" = numeric(), "index"= numeric())
+
+for (y in file.list){
+  print(y)
+  single_ref <- ref_extract(y)
+  all_ref <- rbind(all_ref, single_ref)
+}
+
+```
+
+
+``` {r ordination}
 ##create new dataframe with just the scientific name, midpoint % cover, releve 
 
 #ordination_df <- 
 
 ```
-
-
 
 ```{r fileindex, include=FALSE}
 
@@ -98,7 +130,7 @@ filepath <- "C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R practi
 
 file.list <- list.files(filepath, pattern = '*.xlsx', full.names = TRUE) 
 
-extract_data <- function(x)
+extract_data2 <- function(x)
 {
 relevecode <- read_xlsx(x, sheet = "Woody", range = "C2:C2", col_names = FALSE, na="")  
 
@@ -116,7 +148,7 @@ return(df)
 IndexFile <- data.frame("file"= character(), "releve code" = character(), "releve name" = character(), "releve date" = character())
 
 for (x in file.list){
-  single_file2 <- extract_data(x)
+  single_file2 <- extract_data2(x)
   IndexFile <- rbind(IndexFile, single_file2)
 }
 
@@ -136,6 +168,7 @@ The following releves have issues. Check for blank/missing data in the observati
 ```{r uhoh , echo=false}
 print(Missing)
 ```
+
 ## Project To Do:
 
 *xread 2020 and 2021 releve data
