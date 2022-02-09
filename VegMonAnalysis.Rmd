@@ -24,8 +24,13 @@ library(skimr)
 library(kableExtra)  
 
 
+## Change this to the filepath for the data directory
+
+directory <- "C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R practice\\DCVegMon\\data\\"
+
 ##Find all releve xlsx within directory
-file.list <- list.files("C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R practice\\DCVegMon\\data\\", pattern = '*.xlsx', full.names = TRUE)
+
+file.list <- list.files(directory, pattern = '*.xlsx', full.names = TRUE)
 
 ## Extract data from woody, forbs and grasses worksheets
 
@@ -74,25 +79,56 @@ for (x in file.list){
 ##removes all rows with greater than 10 "NA" cells 
 
 hi <- apply(all_df, 1, function(x) sum(is.na(x)))
-
 all_df <- all_df[hi<10,]
-
-##checking that everything imported
-
-all_df %>% group_by(releveCode) %>% count()
-check <- all_df %>% group_by(releveCode) %>% count()
 
 ##create new dataframe with just the scientific name, midpoint % cover, releve 
 
-ordination_df <- 
+#ordination_df <- 
 
 ```
 
 
 
-## R Markdown
+```{r fileindex, include=FALSE}
 
-Project to do:
+## ----------------- CREATE INDEX FILE  ----------------------
+
+library(dplyr)
+
+filepath <- "C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R practice\\DCVegMon\\data\\"
+
+file.list <- list.files(filepath, pattern = '*.xlsx', full.names = TRUE) 
+
+extract_data <- function(x)
+{
+relevecode <- read_xlsx(x, sheet = "Woody", range = "C2:C2", col_names = FALSE, na="")  
+
+## Save this rabbit hole for later. Blank cells don't exist in Excel, and R will only provide the Index File for files that have all cells. Not sure at which step this is happening - in read or during the bind? 
+#relevename <- read_xlsx(x, sheet = "Woody", range ="B2:B2", col_names = FALSE, na="")
+#relevedate <- read_xlsx(x, sheet = "Woody", range = "B5:B5", col_names = FALSE, na="")
+
+df <- x 
+
+df <- bind_cols(df, relevecode)#, relevename, relevedate)
+
+return(df)
+}
+
+IndexFile <- data.frame("file"= character(), "releve code" = character(), "releve name" = character(), "releve date" = character())
+
+for (x in file.list){
+  single_file2 <- extract_data(x)
+  IndexFile <- rbind(IndexFile, single_file2)
+}
+print(IndexFile)
+
+```
+
+
+
+
+## Project To Do:
+
 xread 2020 and 2021 releve data
 -read GRG reference (ordination folder)
 -Table: Releve, Species, Midpoint % Cover (column M)
@@ -101,27 +137,9 @@ xread 2020 and 2021 releve data
 -Pull in the Compiled Releve Data for R, sheet1 - add year column
 -Create matrix
 
--find all xls in directory (list all files)
--store as array
--1. loop or 2. create function 
-
-extract_data <- function(x){
-  # code for extracting data using filename x
-  return(df)
-}
-
-all_df <- extract_data(filenames[1])
-
-for (x in filenames[-1]){
-  single_df <- extract_data(x)
-  all_df <- rbind(all_df, single_df)
-}
-}
 
 ```{r df}
-print(code)
-summary(data_frame)
-head(data_frame)
+
 
 ```
 

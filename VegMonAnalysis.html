@@ -171,57 +171,172 @@ pre code {
 </div>
 
 
+<pre class="r"><code>## ----------------- CREATE INDEX FILE  ----------------------
+
+library(dplyr)
+
+filepath &lt;- &quot;C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R practice\\DCVegMon\\data\\&quot;
+
+file.list &lt;- list.files(filepath, pattern = &#39;*.xlsx&#39;, full.names = TRUE) 
+
+extract_data &lt;- function(x)
+{
+relevecode &lt;- read_xlsx(x, sheet = &quot;Woody&quot;, range = &quot;C2:C2&quot;, col_names = FALSE, na=&quot;&quot;)  
+
+## Save this rabbit hole for later. Blank cells don&#39;t exist in Excel, and R will only provide the Index File for files that have all cells. Not sure at which step this is happening - in read or during the bind? 
+#relevename &lt;- read_xlsx(x, sheet = &quot;Woody&quot;, range =&quot;B2:B2&quot;, col_names = FALSE, na=&quot;&quot;)
+#relevedate &lt;- read_xlsx(x, sheet = &quot;Woody&quot;, range = &quot;B5:B5&quot;, col_names = FALSE, na=&quot;&quot;)
+
+df &lt;- x 
+
+df &lt;- bind_cols(df, relevecode)#, relevename, relevedate)
+
+return(df)
+}
+
+IndexFile &lt;- data.frame(&quot;file&quot;= character(), &quot;releve code&quot; = character(), &quot;releve name&quot; = character(), &quot;releve date&quot; = character())
+
+for (x in file.list){
+  single_file2 &lt;- extract_data(x)
+  IndexFile &lt;- rbind(IndexFile, single_file2)
+}</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1</code></pre>
+<pre><code>## New names:
+## * NA -&gt; ...1
+## * ...1 -&gt; ...2</code></pre>
+<pre class="r"><code>print(IndexFile)</code></pre>
+<pre><code>## # A tibble: 23 x 2
+##    ...1                                                               ...2      
+##    &lt;chr&gt;                                                              &lt;chr&gt;     
+##  1 &quot;C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R pra~ LHHL52021 
+##  2 &quot;C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R pra~ LHHL2021  
+##  3 &quot;C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R pra~ LHHL12021 
+##  4 &quot;C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R pra~ LHHL22021 
+##  5 &quot;C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R pra~ LHHL32021 
+##  6 &quot;C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R pra~ LHHL42021 
+##  7 &quot;C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R pra~ LHDL2.120~
+##  8 &quot;C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R pra~ LHDL52021 
+##  9 &quot;C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R pra~ LHSP12021 
+## 10 &quot;C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R pra~ LHTS2021  
+## # ... with 13 more rows</code></pre>
 <div id="r-markdown" class="section level2">
 <h2>R Markdown</h2>
-<p>Project to do: -read 2020 and 2021 releve data -read GRG reference (ordination folder) -Table: Releve, Species, Midpoint % Cover (column M) -For our data: Need to add name column to each - in C2 of Woody tab - add column (2020, 2021) -For GRG data: the name will be in the -Pull in the Compiled Releve Data for R, sheet1 - add year column -Create matrix</p>
-<pre class="r"><code>print(code)</code></pre>
-<pre><code>## # A tibble: 0 x 1
-## # ... with 1 variable: testname &lt;lgl&gt;</code></pre>
-<pre class="r"><code>summary(data_frame)</code></pre>
-<pre><code>##  scientific_name    common_name              x3           c_value     
-##  Length:70          Length:70          Min.   :0.000   Min.   :0.000  
-##  Class :character   Class :character   1st Qu.:2.000   1st Qu.:2.000  
-##  Mode  :character   Mode  :character   Median :3.000   Median :3.000  
-##                                        Mean   :3.227   Mean   :3.227  
-##                                        3rd Qu.:5.000   3rd Qu.:5.000  
-##                                        Max.   :7.000   Max.   :7.000  
-##                                        NA&#39;s   :4       NA&#39;s   :4      
-##  physiognamy        mn_nativity            mnwi           rarity_status
-##  Length:70          Length:70          Length:70          Min.   :0    
-##  Class :character   Class :character   Class :character   1st Qu.:0    
-##  Mode  :character   Mode  :character   Mode  :character   Median :0    
-##                                                           Mean   :0    
-##                                                           3rd Qu.:0    
-##                                                           Max.   :0    
-##                                                           NA&#39;s   :4    
-##       id                 cc              cc_range              x12        
-##  Length:70          Length:70          Length:70          Min.   :  0.50  
-##  Class :character   Class :character   Class :character   1st Qu.:  3.00  
-##  Mode  :character   Mode  :character   Mode  :character   Median :  3.00  
-##                                                           Mean   : 10.77  
-##                                                           3rd Qu.:  3.00  
-##                                                           Max.   :235.00  
-##                                                                           
-##   midpoint_cc           p                 p_c         
-##  Min.   : 0.500   Min.   :0.002128   Min.   :0.00000  
-##  1st Qu.: 3.000   1st Qu.:0.012766   1st Qu.:0.02553  
-##  Median : 3.000   Median :0.026906   Median :0.08072  
-##  Mean   : 5.627   Mean   :0.044776   Mean   :0.15082  
-##  3rd Qu.: 3.000   3rd Qu.:0.063830   3rd Qu.:0.16143  
-##  Max.   :62.500   Max.   :0.491803   Max.   :1.96721  
-##  NA&#39;s   :3        NA&#39;s   :3          NA&#39;s   :4</code></pre>
-<pre class="r"><code>head(data_frame)</code></pre>
-<pre><code>## # A tibble: 6 x 15
-##   scientific_name     common_name      x3 c_value physiognamy mn_nativity mnwi  
-##   &lt;chr&gt;               &lt;chr&gt;         &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;       &lt;chr&gt;       &lt;chr&gt; 
-## 1 Quercus macrocarpa  bur oak           5       5 D           Native      [FAC-]
-## 2 Prunus serotina     black cherry      4       4 D           Native      [FACU]
-## 3 Acer saccharinum    silver maple      3       3 D           Native      FACW  
-## 4 Betula papyrifera   paper birch       3       3 D           Native      [FACU~
-## 5 Populus tremuloides quaking aspen     2       2 D           Native      [FAC] 
-## 6 Acer negundo        box elder         1       1 D           Native      FACW- 
-## # ... with 8 more variables: rarity_status &lt;dbl&gt;, id &lt;chr&gt;, cc &lt;chr&gt;,
-## #   cc_range &lt;chr&gt;, x12 &lt;dbl&gt;, midpoint_cc &lt;dbl&gt;, p &lt;dbl&gt;, p_c &lt;dbl&gt;</code></pre>
+<p>Project to do: xread 2020 and 2021 releve data -read GRG reference (ordination folder) -Table: Releve, Species, Midpoint % Cover (column M) -For our data: Need to add name column to each - in C2 of Woody tab - add column (2020, 2021) -For GRG data: the name will be in the NPC Code -Pull in the Compiled Releve Data for R, sheet1 - add year column -Create matrix</p>
+<p>-find all xls in directory (list all files) -store as array -1. loop or 2. create function</p>
+<p>extract_data &lt;- function(x){ # code for extracting data using filename x return(df) }</p>
+<p>all_df &lt;- extract_data(filenames[1])</p>
+<p>for (x in filenames[-1]){ single_df &lt;- extract_data(x) all_df &lt;- rbind(all_df, single_df) } }</p>
 </div>
 
 
