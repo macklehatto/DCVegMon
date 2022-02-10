@@ -23,10 +23,9 @@ library(skimr)  # not used so far
 library(kableExtra)  #not used so far
 ```
 
-
 ``` {r DCrelevedata, include = false}
 
-## Change this to the filepath for the data directory
+## Change this to the filepath for the data directory for releve data from 2020 and 2021
 
 directory <- "C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R practice\\DCVegMon\\data\\"
 
@@ -89,8 +88,14 @@ all_df <- all_df[hi<10,]
 ```
 
 ``` {r DC_Old_Data, include = false}
-## I was going to pull in the data that was processed in 2019 for the ordination project, but can we just put the original "Analyzed Data" files in with the 2020 and 2021 spreadsheets and use the code in DCrelevedata chunk? That would be easier :) Unless the format of the original .xls files has changed...
+## Change this to the file for the 2019 and prior data that was compiled for R previously
 
+old <- "C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R practice\\DCVegMon\\data\\2019 and prior data\\Compiled Releve Data for R.xlsx"
+
+  olddata <- read_excel(old, sheet = "Sheet1", col_name = TRUE) %>%
+    select("Releve", "Species", "Midpoint % Cover") %>%
+    janitor::clean_names() 
+  
 ```
 
 ``` {r ReferenceSiteData, include=FALSE}
@@ -197,10 +202,3 @@ print(Missing)
 *-Pull in the Compiled Releve Data for R, sheet1 - add year column
     +oy, see note in DC_Old_Data chunk
 *-Create matrix
-
-
-```{r df}
-
-
-```
-
