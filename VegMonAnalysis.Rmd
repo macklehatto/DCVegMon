@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #install.packages('skimr', repos = "http://cran.us.r-project.org")
 #install.packages('kableExtra', repos = "http://cran.us.r-project.org")
 #install.packages('janitor', repos = "http://cran.us.r-project.org")
+#install.packages('pivottabler', repos = "http://cran.us.r-project.org")
 
 ## attach libraries
 library(tidyverse)
@@ -23,7 +24,9 @@ library(skimr)  # not used so far
 library(kableExtra)  #not used so far
 ```
 
-``` {r DCrelevedata, include = false}
+``` {r DCrelevedata, include = FALSE}
+
+### This is the code to read in the 2020 and 2021 data ---------------------------------
 
 ## Change this to the filepath for the data directory for releve data from 2020 and 2021
 
@@ -87,20 +90,28 @@ all_df <- all_df[hi<10,]
 
 ```
 
-``` {r DC_Old_Data, include = false}
+``` {r DC_Old_Data, include = FALSE}
+
+### This is the code to read in the processed data from 2019 and prior (just includes releve code, species and midpoint % cover)  -------
+
 ## Change this to the file for the 2019 and prior data that was compiled for R previously
 
 old <- "C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R practice\\DCVegMon\\data\\2019 and prior data\\Compiled Releve Data for R.xlsx"
 
   olddata <- read_excel(old, sheet = "Sheet1", col_name = TRUE) %>%
     select("Releve", "Species", "Midpoint % Cover") %>%
-    janitor::clean_names() 
+    janitor::clean_names() %>%
+    add_column(releveyear = "")
   
+##getting the year out of the releve code and creating column for it
+ n_last <- 4
+ olddata['releveyear'] <- substr(olddata$releve, nchar(olddata$releve)-n_last + 1, nchar(olddata$releve))
+
 ```
 
 ``` {r ReferenceSiteData, include=FALSE}
 
-## This is the code to load in the GRG Reference Site Data ---------------------
+### This is the code to load in the GRG Reference Site Data ---------------------
 
 ## change this to the correct directory
 refdir <- "C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R practice\\DCVegMon\\data\\GRG Reference"
@@ -134,14 +145,83 @@ for (y in file.list){
 empties <- apply(all_ref, 1, function(x) sum(is.na(x)))
 all_ref <- all_ref[empties<4,]
 
+##makes sure the abundance is numeric
+
+all_ref$`4Abund` <-as.numeric(all_ref$`4Abund`)
+
+
 ```
 
-``` {r ordination}
+``` {r ordination_prep_table}
+
 ##create new dataframe with just the scientific name, midpoint % cover, releve 
 
-#dc_ord_df <- all_df() 
+### For Reference:
+### olddata = the 2019 and prior data prepped for analysis in excel
+### all_df = the complete 2020 and 2021 releves
+### ref_data = the GRG reference site data 
+
+DCData1 <- all_df[ ,c("scientific_name", "midpoint_cc", "releveCode")] 
+
+DCData2 <- olddata[ , c("species", "midpoint_percent_cover", "releve")] %>%
+     dplyr::rename("scientific_name" = "species", 
+                "midpoint_cc" = "midpoint_percent_cover", 
+                "releveCode" = "releve")
+
+## Q from MM - is the Abundance column the correct one to pull in?
+
+RefData <- all_ref[ , c("Genus", "Species", "4Abund", "...6")]
+  
+RefData <- unite(RefData, "scientific_name", Genus:Species, sep = " ", remove = TRUE) 
+
+RefData <- dplyr::rename(RefData, "midpoint_cc" = "4Abund", 
+                "releveCode" = "...6")
+
+AllData <-
+  dplyr::bind_rows(
+    #AllData, 
+    DCData1, 
+    DCData2, 
+    RefData 
+        )
 
 ```
+
+```{r ordination_prep_pivot}
+
+## Create pivot table with species (row), releve (column) and midpoint percent cover (data)
+
+dcveg <- AllData %>%
+  mutate(midpoint_cc = ifelse(is.na(midpoint_cc), 0, midpoint_cc)) %>%
+  pivot_wider(names_from = scientific_name, values_from = midpoint_cc, values_fn = list)
+ 
+```
+
+```{r DCA_OrdinationCode2019}
+
+library(vegan)
+library(MASS)
+library(cluster.datasets)
+library(ggplot2)
+
+dcveg <- read.csv("N:/PARKS/Natural Resources/Monitoring/Transects, Releves, and Photo Monitoring/Archived Monitoring Data/Analyzed Releve Data/RScript/RelData.csv", row.names=1, header = TRUE, sep = ",")
+
+groups <- read.csv("N:/PARKS/Natural Resources/Monitoring/Transects, Releves, and Photo Monitoring/Archived Monitoring Data/Analyzed Releve Data/RScript/Groups.csv", row.names=1, header = TRUE, sep = ",")
+
+ord <- decorana(dcveg)
+
+plot(ord, type = "n")
+
+points(ord, display = "sites", cex = 2, pch = 21, col = "black", bg = "gray")
+
+ordiellipse(ord, groups$Group, display = "sites", kind = "sd", conf = 0.95, draw = "polygon")
+
+sel <- orditorp(ord, dis = "sites", type = "n", col = "blue")
+#text(ord, display = "spec", cex = 0.7, col = "red")
+
+sel2 <- orditorp(ord, dis = "spec", cex = 0.7, col = "red")
+```
+
 
 ```{r fileindex, include=FALSE}
 
@@ -188,17 +268,17 @@ print(Missing)
 ## OH NOS!
 The following releves have issues. Check for blank/missing data in the observations worksheets.
 
-```{r uhoh , echo=false}
+```{r uhoh , echo=FALSE}
 print(Missing)
 ```
 
 ## Project To Do:
 
-*xread 2020 and 2021 releve data
-*xread GRG reference (ordination folder)
-*-Table: Releve, Species, Midpoint % Cover (column M), year
-*xFor our data: Need to add name column to each - in C2 of Woody tab *xadd column (2020, 2021)
-*xFor GRG data: the name will be in the NPC Code or whatevers in A1
-*-Pull in the Compiled Releve Data for R, sheet1 - add year column
-    +oy, see note in DC_Old_Data chunk
-*-Create matrix
+* xread 2020 and 2021 releve data
+* xread GRG reference (ordination folder)
+* xTable: Releve, Species, Midpoint % Cover (column M), year
+* xFor our data: Need to add name column to each - in C2 of Woody tab *xadd column (2020, 2021)
+* xFor GRG data: the name will be in the NPC Code or whatever's in A1
+* xPull in the Compiled Releve Data for R, sheet1 - add year column
+* -Create matrix
+* -Groups Table - what is this and how do we automate import of new data?
