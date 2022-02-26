@@ -123,7 +123,7 @@ ref_extract <- function(y)
   refdata <- read_xlsx(y, sheet= 1, skip = 1, col_names = TRUE) %>%
     janitor::remove_empty(c("rows"))%>%
     select("Genus", "Species", "3Freq" , "4Abund", "5Index")
-  
+    
   refcode <- read_xlsx(y, sheet = 1, range = "A1:A1", col_names = FALSE)
   refcode <- list(refcode[[1,1]])
   
@@ -152,6 +152,27 @@ all_ref$`4Abund` <-as.numeric(all_ref$`4Abund`)
 
 ```
 
+```{r}
+#  test <- read_xlsx("C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R practice\\DCVegMon\\data\\GRG Reference\\List-3-Central-Mesic-Hardwood-Forest-Eastern.xlsx", skip = 2)
+# 
+#  test$row_num <- seq.int(nrow(test))
+# > subcanopy <- which(grepl("Understory Trees", test$...2))
+# > subcanopy
+# integer(0)
+# > subcanopy <- which(grepl("Understory Trees", test$`Canopy Trees (>10 m)`))
+# > subcanopy
+# [1] 14
+# > canopy <- test %>%
+# +     filter(row_num < subcanopy) %>%
+# +     select(-row_num)
+# Error in select(., -row_num) : unused argument (-row_num)
+# > 
+# > canopy <- test %>%
+# +     filter(row_num < subcanopy) %>%
+# +     dplyr::select(-row_num)
+```
+
+
 ``` {r ordination_prep_table}
 
 ##create new dataframe with just the scientific name, midpoint % cover, releve 
@@ -161,21 +182,29 @@ all_ref$`4Abund` <-as.numeric(all_ref$`4Abund`)
 ### all_df = the complete 2020 and 2021 releves
 ### ref_data = the GRG reference site data 
 
-DCData1 <- all_df[ ,c("scientific_name", "midpoint_cc", "releveCode")] 
+DCData1 <- all_df[ ,c("scientific_name", "midpoint_cc", "releveCode")] %>%
+  group_by(scientific_name, releveCode) %>%
+  slice(which.max(midpoint_cc)) %>%
+  ungroup()
 
 DCData2 <- olddata[ , c("species", "midpoint_percent_cover", "releve")] %>%
      dplyr::rename("scientific_name" = "species", 
                 "midpoint_cc" = "midpoint_percent_cover", 
-                "releveCode" = "releve")
-
-## Q from MM - is the Abundance column the correct one to pull in?
+                "releveCode" = "releve")%>%
+  group_by(scientific_name, releveCode) %>%
+  slice(which.max(midpoint_cc)) %>%
+  ungroup()
 
 RefData <- all_ref[ , c("Genus", "Species", "4Abund", "...6")]
   
 RefData <- unite(RefData, "scientific_name", Genus:Species, sep = " ", remove = TRUE) 
 
 RefData <- dplyr::rename(RefData, "midpoint_cc" = "4Abund", 
-                "releveCode" = "...6")
+                "releveCode" = "...6") %>%
+  group_by(scientific_name, releveCode) %>%
+  slice(which.max(midpoint_cc)) %>%
+  ungroup()
+  
 
 AllData <-
   dplyr::bind_rows(
@@ -194,6 +223,7 @@ AllData <-
 dcveg <- AllData %>%
   mutate(midpoint_cc = ifelse(is.na(midpoint_cc), 0, midpoint_cc)) %>%
   pivot_wider(names_from = scientific_name, values_from = midpoint_cc, values_fn = list)
+
  
 ```
 
@@ -204,22 +234,30 @@ library(MASS)
 library(cluster.datasets)
 library(ggplot2)
 
-dcveg <- read.csv("N:/PARKS/Natural Resources/Monitoring/Transects, Releves, and Photo Monitoring/Archived Monitoring Data/Analyzed Releve Data/RScript/RelData.csv", row.names=1, header = TRUE, sep = ",")
+#dcveg <- read.csv("C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R practice\\DCVegMon\\Old R script\\RScript\\RelData.csv", row.names=1, header = TRUE, sep = ",")
 
-groups <- read.csv("N:/PARKS/Natural Resources/Monitoring/Transects, Releves, and Photo Monitoring/Archived Monitoring Data/Analyzed Releve Data/RScript/Groups.csv", row.names=1, header = TRUE, sep = ",")
+#groups <- read.csv("N:/PARKS/Natural Resources/Monitoring/Transects, Releves, and Photo Monitoring/Archived Monitoring Data/Analyzed Releve Data/RScript/Groups.csv", row.names=1, header = TRUE, sep = ",")
 
-ord <- decorana(dcveg)
+ 
+dcveg[,-1] <- sapply(dcveg[,-1], function(x) as.numeric(as.character(x)))
+
+dcveg[is.na(dcveg)] <- 0
+
+dcveg <- column_to_rownames(dcveg, var="releveCode")
+
+ord <- decorana(dcveg[,-1])
 
 plot(ord, type = "n")
 
-points(ord, display = "sites", cex = 2, pch = 21, col = "black", bg = "gray")
+points(ord, display = "species", cex = 0.1, pch = 21, col = "black", bg = "gray")
 
-ordiellipse(ord, groups$Group, display = "sites", kind = "sd", conf = 0.95, draw = "polygon")
+ #ordiellipse(ord, groups$Group, display = "sites", kind = "sd", conf = 0.95, draw = "polygon")
 
 sel <- orditorp(ord, dis = "sites", type = "n", col = "blue")
-#text(ord, display = "spec", cex = 0.7, col = "red")
+text(ord, display = "sites", cex = 0.7, col = "red")
 
-sel2 <- orditorp(ord, dis = "spec", cex = 0.7, col = "red")
+ #sel2 <- orditorp(ord, dis = "spec", cex = 0.7, col = "red")
+
 ```
 
 

@@ -173,11 +173,60 @@ pre code {
 
 <pre class="r"><code>##create new dataframe with just the scientific name, midpoint % cover, releve 
 
-##dc_old = the 2019 and prior data prepped for analysis in excel
-##all_df = the complete 2020 and 2021 releves
-##ref_data = the GRG reference site data 
+### For Reference:
+### olddata = the 2019 and prior data prepped for analysis in excel
+### all_df = the complete 2020 and 2021 releves
+### ref_data = the GRG reference site data 
 
-#dc_ord_df &lt;- all_df() </code></pre>
+DCData1 &lt;- all_df[ ,c(&quot;scientific_name&quot;, &quot;midpoint_cc&quot;, &quot;releveCode&quot;)] 
+
+DCData2 &lt;- olddata[ , c(&quot;species&quot;, &quot;midpoint_percent_cover&quot;, &quot;releve&quot;)] %&gt;%
+     dplyr::rename(&quot;scientific_name&quot; = &quot;species&quot;, 
+                &quot;midpoint_cc&quot; = &quot;midpoint_percent_cover&quot;, 
+                &quot;releveCode&quot; = &quot;releve&quot;)
+
+## Q from MM - is the Abundance column the correct one to pull in?
+
+RefData &lt;- all_ref[ , c(&quot;Genus&quot;, &quot;Species&quot;, &quot;4Abund&quot;, &quot;...6&quot;)]
+  
+RefData &lt;- unite(RefData, &quot;scientific_name&quot;, Genus:Species, sep = &quot; &quot;, remove = TRUE) 
+
+RefData &lt;- dplyr::rename(RefData, &quot;midpoint_cc&quot; = &quot;4Abund&quot;, 
+                &quot;releveCode&quot; = &quot;...6&quot;)
+
+AllData &lt;-
+  dplyr::bind_rows(
+    #AllData, 
+    DCData1, 
+    DCData2, 
+    RefData 
+        )</code></pre>
+<pre class="r"><code>## Create pivot table with species (row), releve (column) and midpoint percent cover (data)
+
+dcveg &lt;- AllData %&gt;%
+  mutate(midpoint_cc = ifelse(is.na(midpoint_cc), 0, midpoint_cc)) %&gt;%
+  pivot_wider(names_from = scientific_name, values_from = midpoint_cc, values_fn = list)</code></pre>
+<pre class="r"><code># library(vegan)
+# library(MASS)
+# library(cluster.datasets)
+# library(ggplot2)
+# 
+# dcveg &lt;- read.csv(&quot;N:/PARKS/Natural Resources/Monitoring/Transects, Releves, and Photo Monitoring/Archived Monitoring Data/Analyzed Releve Data/RScript/RelData.csv&quot;, row.names=1, header = TRUE, sep = &quot;,&quot;)
+# 
+# groups &lt;- read.csv(&quot;N:/PARKS/Natural Resources/Monitoring/Transects, Releves, and Photo Monitoring/Archived Monitoring Data/Analyzed Releve Data/RScript/Groups.csv&quot;, row.names=1, header = TRUE, sep = &quot;,&quot;)
+# 
+# ord &lt;- decorana(dcveg)
+# 
+# plot(ord, type = &quot;n&quot;)
+# 
+# points(ord, display = &quot;sites&quot;, cex = 2, pch = 21, col = &quot;black&quot;, bg = &quot;gray&quot;)
+# 
+# ordiellipse(ord, groups$Group, display = &quot;sites&quot;, kind = &quot;sd&quot;, conf = 0.95, draw = &quot;polygon&quot;)
+# 
+# sel &lt;- orditorp(ord, dis = &quot;sites&quot;, type = &quot;n&quot;, col = &quot;blue&quot;)
+# #text(ord, display = &quot;spec&quot;, cex = 0.7, col = &quot;red&quot;)
+# 
+# sel2 &lt;- orditorp(ord, dis = &quot;spec&quot;, cex = 0.7, col = &quot;red&quot;)</code></pre>
 <div id="oh-nos" class="section level2">
 <h2>OH NOS!</h2>
 <p>The following releves have issues. Check for blank/missing data in the observations worksheets.</p>
@@ -185,7 +234,16 @@ pre code {
 </div>
 <div id="project-to-do" class="section level2">
 <h2>Project To Do:</h2>
-<p><em>xread 2020 and 2021 releve data </em>xread GRG reference (ordination folder) <em>-Table: Releve, Species, Midpoint % Cover (column M), year </em>xFor our data: Need to add name column to each - in C2 of Woody tab <em>xadd column (2020, 2021) </em>xFor GRG data: the name will be in the NPC Code or whatevers in A1 <em>xPull in the Compiled Releve Data for R, sheet1 - add year column </em>-Create matrix</p>
+<ul>
+<li>xread 2020 and 2021 releve data</li>
+<li>xread GRG reference (ordination folder)</li>
+<li>xTable: Releve, Species, Midpoint % Cover (column M), year</li>
+<li>xFor our data: Need to add name column to each - in C2 of Woody tab *xadd column (2020, 2021)</li>
+<li>xFor GRG data: the name will be in the NPC Code or whatever’s in A1</li>
+<li>xPull in the Compiled Releve Data for R, sheet1 - add year column</li>
+<li>-Create matrix</li>
+<li>-Groups Table - what is this and how do we automate import of new data?</li>
+</ul>
 </div>
 
 
