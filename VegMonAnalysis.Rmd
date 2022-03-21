@@ -167,70 +167,90 @@ all_ref$`4Abund` <-as.numeric(all_ref$`4Abund`)
 ```
 
 ```{r AddCanopySubcanopyEtc, include=FALSE}
-
-file.ls <- list.files(here::here("data", "GRG Reference"), pattern = '\\.xlsx', full.names = TRUE)
-
-ref_extract2 <- function(y)
-{ 
-  refdata2 <- read_xlsx(y, sheet= 1, skip = 1, col_names = TRUE) %>%
-    janitor::remove_empty(c("rows"))
-  
-## find the row numbers where new sections start  
-  refdata2$row_num <- seq.int(nrow(refdata2))
-  
-  subcanopy <- which(grepl("Understory Trees", refdata2$Genus)) 
-  
-  shrubs <- which(grepl("Shrubs", refdata2$Genus)) 
-  
-  low_shrubs <- which(grepl("Low Shrubs", refdata2$Genus)) 
-  
-  vines <- which(grepl("Vines", refdata2$Genus)) 
-  
-  forbs <- which(grepl("Forbs", refdata2$Genus)) 
-  
-  grasses <- which(grepl("Grasses, Rushes and Sedges", refdata2$Genus)) 
-  
-  ferns <- which(grepl("Ferns and Fern Allies", refdata2$Genus))
-  
-  stop <- which(grepl("Exotic Invasive Species - Do Not Plant", refdata2$Genus))
-  
-  canopy <- refdata2 %>%
-    filter(row_num < subcanopy) %>%
-    dplyr::select(-row_num) %>%
-    add_column(HeightClass = "canopy")
-  subcanopy <- refdata2 %>%
-    slice(subcanopy, shrubs) %>%
-    dplyr::select(-row_num) %>%
-    add_column(HeightClass = "subcanopy")
-   shrubs <- refdata2 %>%
-    filter(row_num < shrubs > low_shrubs) %>%
-    dplyr::select(-row_num) %>%
-    add_column(HeightClass = "subcanopy")
-    
-  
-  subcanopy <-
-    
-  refcode2 <- read_xlsx(y, sheet = 1, range = "A1:A1", col_names = FALSE)
-  refcode2 <- list(refcode2[[1,1]])
-  
-  df<- bind_cols(refdata2, refcode)
-  
-  return(df)
-}
-
-Ref_all <- data.frame("genus" = character(), "species" = character(), "freq" = numeric() , "abund" = numeric(), "index"= numeric())
-
-for (y in file.ls){
-  print(y)
-  single_ref <- ref_extract(y)
-  all_ref <- rbind(all_ref, single_ref)
-}
+# 
+# file.ls <- list.files(here::here("data", "GRG Reference"), pattern = '\\.xlsx', full.names = TRUE)
+# 
+# ref_extract2 <- function(y)
+# { 
+#   refdata2 <- read_xlsx(y, sheet= 1, skip = 1, col_names = TRUE) %>%
+#     janitor::remove_empty(c("rows"))
+#   
+# ## find the row numbers where new sections start  
+#   refdata2$row_num <- seq.int(nrow(refdata2))
+#   
+#   subcanopy <- which(grepl("Understory Trees", refdata2$Genus)) 
+#   
+#   shrubs <- which(grepl("Shrubs", refdata2$Genus)) 
+#   
+#   low_shrubs <- which(grepl("Low Shrubs", refdata2$Genus)) 
+#   
+#   vines <- which(grepl("Vines", refdata2$Genus)) 
+#   
+#   forbs <- which(grepl("Forbs", refdata2$Genus)) 
+#   
+#   grasses <- which(grepl("Grasses, Rushes and Sedges", refdata2$Genus)) 
+#   
+#   ferns <- which(grepl("Ferns and Fern Allies", refdata2$Genus))
+#   
+#   stop <- which(grepl("Exotic Invasive Species - Do Not Plant", refdata2$Genus))
+#   
+#   canopy <- refdata2 %>%
+#     filter(row_num < subcanopy) %>%
+#     dplyr::select(-row_num) %>%
+#     add_column(HeightClass = "canopy")
+#   subcanopy <- refdata2 %>%
+#     slice(subcanopy, shrubs) %>%
+#     dplyr::select(-row_num) %>%
+#     add_column(HeightClass = "subcanopy")
+#    shrubs <- refdata2 %>%
+#     filter(row_num < shrubs > low_shrubs) %>%
+#     dplyr::select(-row_num) %>%
+#     add_column(HeightClass = "shrubs")
+#    low_shrubs <- refdata2 %>%
+#     slice(low_shrubs:vines) %>%
+#     dplyr::select(-row_num) %>%
+#     add_column(HeightClass = "low shrubs")
+#    vines <- refdata2 %>%
+#     slice(vines:forbs) %>%
+#     dplyr::select(-row_num) %>%
+#     add_column(HeightClass = "vines")
+#    forbs <- refdata2 %>%
+#     slice(forbs:grasses) %>%
+#     dplyr::select(-row_num) %>%
+#     add_column(HeightClass = "forbs")
+#    grasses <- refdata2 %>%
+#     slice(grasses:ferns) %>%
+#     dplyr::select(-row_num) %>%
+#     add_column(HeightClass = "graminoids")
+#    ferns <- refdata2 %>%
+#     slice(grasses:stop) %>%
+#     dplyr::select(-row_num) %>%
+#     add_column(HeightClass = "ferns")
+#     
+#   
+#   subcanopy <-
+#     
+#   refcode2 <- read_xlsx(y, sheet = 1, range = "A1:A1", col_names = FALSE)
+#   refcode2 <- list(refcode2[[1,1]])
+#   
+#   df<- bind_cols(refdata2, refcode)
+#   
+#   return(df)
+# }
+# 
+# Ref_all <- data.frame("genus" = character(), "species" = character(), "freq" = numeric() , "abund" = numeric(), "index"= numeric())
+# 
+# for (y in file.ls){
+#   print(y)
+#   single_ref <- ref_extract(y)
+#   all_ref <- rbind(all_ref, single_ref)
+# }
 
 
 ```
 
 
-``` {r ordination_prep_table}
+``` {r ordination_prep_table, include=FALSE}
 
 ##create new dataframe with just the scientific name, midpoint % cover, releve 
 
@@ -273,7 +293,7 @@ AllData <-
 
 ```
 
-```{r ordination_prep_pivot}
+```{r ordination_prep_pivot, include=FALSE}
 
 ## Create pivot table with species (row), releve (column) and midpoint percent cover (data)
 
@@ -376,4 +396,12 @@ print(Missing)
 * xFor GRG data: the name will be in the NPC Code or whatever's in A1
 * xPull in the Compiled Releve Data for R, sheet1 - add year column
 * xCreate matrix
-* xGroups Table - what is this and how do we automate import of new data?
+* Groups Table - add later?
+* low priority: quality control for missing documents
+* add the groups back into the plot
+* remove labels, change symbology
+* Appsheet for data collection for future
+* double check that the data format
+* idea: k means clustering analysis? bootstrap -> 95% confidence
+* GRG Height Classes - for future analysis work and also for the FQI. Not required for ordination script
+
