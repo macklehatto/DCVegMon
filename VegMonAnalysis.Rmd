@@ -166,24 +166,67 @@ all_ref$`4Abund` <-as.numeric(all_ref$`4Abund`)
 
 ```
 
-```{r AddCanopySubcanopyEtc}
-#  test <- read_xlsx("C:\\Users\\Meg\\OneDrive - University of Nebraska-Lincoln\\R practice\\DCVegMon\\data\\GRG Reference\\List-3-Central-Mesic-Hardwood-Forest-Eastern.xlsx", skip = 2)
-# 
-#  test$row_num <- seq.int(nrow(test))
-# > subcanopy <- which(grepl("Understory Trees", test$...2))
-# > subcanopy
-# integer(0)
-# > subcanopy <- which(grepl("Understory Trees", test$`Canopy Trees (>10 m)`))
-# > subcanopy
-# [1] 14
-# > canopy <- test %>%
-# +     filter(row_num < subcanopy) %>%
-# +     select(-row_num)
-# Error in select(., -row_num) : unused argument (-row_num)
-# > 
-# > canopy <- test %>%
-# +     filter(row_num < subcanopy) %>%
-# +     dplyr::select(-row_num)
+```{r AddCanopySubcanopyEtc, include=FALSE}
+
+file.ls <- list.files(here::here("data", "GRG Reference"), pattern = '\\.xlsx', full.names = TRUE)
+
+ref_extract2 <- function(y)
+{ 
+  refdata2 <- read_xlsx(y, sheet= 1, skip = 1, col_names = TRUE) %>%
+    janitor::remove_empty(c("rows"))
+  
+## find the row numbers where new sections start  
+  refdata2$row_num <- seq.int(nrow(refdata2))
+  
+  subcanopy <- which(grepl("Understory Trees", refdata2$Genus)) 
+  
+  shrubs <- which(grepl("Shrubs", refdata2$Genus)) 
+  
+  low_shrubs <- which(grepl("Low Shrubs", refdata2$Genus)) 
+  
+  vines <- which(grepl("Vines", refdata2$Genus)) 
+  
+  forbs <- which(grepl("Forbs", refdata2$Genus)) 
+  
+  grasses <- which(grepl("Grasses, Rushes and Sedges", refdata2$Genus)) 
+  
+  ferns <- which(grepl("Ferns and Fern Allies", refdata2$Genus))
+  
+  stop <- which(grepl("Exotic Invasive Species - Do Not Plant", refdata2$Genus))
+  
+  canopy <- refdata2 %>%
+    filter(row_num < subcanopy) %>%
+    dplyr::select(-row_num) %>%
+    add_column(HeightClass = "canopy")
+  subcanopy <- refdata2 %>%
+    slice(subcanopy, shrubs) %>%
+    dplyr::select(-row_num) %>%
+    add_column(HeightClass = "subcanopy")
+   shrubs <- refdata2 %>%
+    filter(row_num < shrubs > low_shrubs) %>%
+    dplyr::select(-row_num) %>%
+    add_column(HeightClass = "subcanopy")
+    
+  
+  subcanopy <-
+    
+  refcode2 <- read_xlsx(y, sheet = 1, range = "A1:A1", col_names = FALSE)
+  refcode2 <- list(refcode2[[1,1]])
+  
+  df<- bind_cols(refdata2, refcode)
+  
+  return(df)
+}
+
+Ref_all <- data.frame("genus" = character(), "species" = character(), "freq" = numeric() , "abund" = numeric(), "index"= numeric())
+
+for (y in file.ls){
+  print(y)
+  single_ref <- ref_extract(y)
+  all_ref <- rbind(all_ref, single_ref)
+}
+
+
 ```
 
 
@@ -332,5 +375,5 @@ print(Missing)
 * xFor our data: Need to add name column to each - in C2 of Woody tab *xadd column (2020, 2021)
 * xFor GRG data: the name will be in the NPC Code or whatever's in A1
 * xPull in the Compiled Releve Data for R, sheet1 - add year column
-* -Create matrix
-* -Groups Table - what is this and how do we automate import of new data?
+* xCreate matrix
+* xGroups Table - what is this and how do we automate import of new data?
