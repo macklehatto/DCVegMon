@@ -8,11 +8,11 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-##install packages
-#install.packages('skimr', repos = "http://cran.us.r-project.org")
-#install.packages('kableExtra', repos = "http://cran.us.r-project.org")
-#install.packages('janitor', repos = "http://cran.us.r-project.org")
-#install.packages('pivottabler', repos = "http://cran.us.r-project.org")
+#install packages
+install.packages('skimr', repos = "http://cran.us.r-project.org")
+install.packages('kableExtra', repos = "http://cran.us.r-project.org")
+install.packages('janitor', repos = "https://cran.r-project.org/package=janitor")
+install.packages('pivottabler', repos = "http://cran.us.r-project.org")
 
 ## attach libraries
 library(tidyverse)
@@ -24,7 +24,7 @@ library(here)
 #library(kableExtra)  #not used so far
 ```
 
-``` {r DCrelevedata, include = FALSE}
+```{r DCrelevedata, include = FALSE}
 
 ### This is the code to read in the 2020 and 2021 data ---------------------------------
 
@@ -40,8 +40,8 @@ file.list <- list.files(path = here::here("data", "2021 Format"), full.names = T
  extract_data <- function(x)
 {
 woody <- read_xlsx(x, sheet = "Woody", skip = 8)%>%
-  janitor::clean_names() %>%
-  janitor::remove_empty(c("rows"))%>%
+  clean_names() %>%
+  remove_empty(c("rows"))%>%
   mutate(rarity_status = as.character(rarity_status)) %>%
   select("scientific_name", "common_name", "x3" , "physiognamy", "mn_nativity", "mnwi", "rarity_status" = , "id" , "cc" , "cc_range", "x12" , "midpoint_cc", "p", "p_c")
 
@@ -95,7 +95,7 @@ rm(x)
 
 ```
 
-``` {r DC_Old_Data, include = FALSE}
+```{r DC_Old_Data, include = FALSE}
 
 ### This is the code to read in the processed data from 2019 and prior (just includes releve code, species and midpoint % cover)  -------
 
@@ -118,7 +118,7 @@ old <- here("Data", "2019 and prior data", "Compiled Releve Data for R.xlsx")
 
 ```
 
-``` {r ReferenceSiteData, include=FALSE}
+```{r ReferenceSiteData, include=FALSE}
 
 ### This is the code to load in the GRG Reference Site Data ---------------------
 
@@ -249,8 +249,7 @@ all_ref$`4Abund` <-as.numeric(all_ref$`4Abund`)
 
 ```
 
-
-``` {r ordination_prep_table, include=FALSE}
+```{r ordination_prep_table, include=FALSE}
 
 ##create new dataframe with just the scientific name, midpoint % cover, releve 
 
@@ -337,7 +336,6 @@ text(ord, display = "sites", cex = 0.7, col = "red")
 
 ```
 
-
 ```{r fileindex, include=FALSE}
 
 ## ----------------- CREATE INDEX FILE  ----------------------
@@ -381,6 +379,7 @@ print(Missing)
 ```
 
 ## OH NOS!
+
 The following releves have issues. Check for blank/missing data in the observations worksheets.
 
 ```{r uhoh , echo=FALSE}
@@ -389,19 +388,18 @@ print(Missing)
 
 ## Project To Do:
 
-* xread 2020 and 2021 releve data
-* xread GRG reference (ordination folder)
-* xTable: Releve, Species, Midpoint % Cover (column M), year
-* xFor our data: Need to add name column to each - in C2 of Woody tab *xadd column (2020, 2021)
-* xFor GRG data: the name will be in the NPC Code or whatever's in A1
-* xPull in the Compiled Releve Data for R, sheet1 - add year column
-* xCreate matrix
-* Groups Table - add later?
-* low priority: quality control for missing documents
-* add the groups back into the plot
-* remove labels, change symbology
-* Appsheet for data collection for future
-* double check that the data format
-* idea: k means clustering analysis? bootstrap -> 95% confidence
-* GRG Height Classes - for future analysis work and also for the FQI. Not required for ordination script
-
+-   xread 2020 and 2021 releve data
+-   xread GRG reference (ordination folder)
+-   xTable: Releve, Species, Midpoint % Cover (column M), year
+-   xFor our data: Need to add name column to each - in C2 of Woody tab \*xadd column (2020, 2021)
+-   xFor GRG data: the name will be in the NPC Code or whatever's in A1
+-   xPull in the Compiled Releve Data for R, sheet1 - add year column
+-   xCreate matrix
+-   Groups Table - add later?
+-   low priority: quality control for missing documents
+-   add the groups back into the plot
+-   remove labels, change symbology
+-   Appsheet for data collection for future
+-   double check that the data format
+-   idea: k means clustering analysis? bootstrap -\> 95% confidence
+-   GRG Height Classes - for future analysis work and also for the FQI. Not required for ordination script
