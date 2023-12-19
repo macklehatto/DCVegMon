@@ -8,11 +8,14 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-#install packages
-install.packages('skimr', repos = "http://cran.us.r-project.org")
-install.packages('kableExtra', repos = "http://cran.us.r-project.org")
-install.packages('janitor', repos = "https://cran.r-project.org/package=janitor")
-install.packages('pivottabler', repos = "http://cran.us.r-project.org")
+##install packages
+#install.packages('skimr', repos = "http://cran.us.r-project.org")
+#install.packages('kableExtra', repos = "http://cran.us.r-project.org")
+#install.packages('janitor', repos = "https://cran.r-project.org/package=janitor")
+#install.packages('pivottabler', repos = "http://cran.us.r-project.org")
+#install.packages('tidyverse')
+#install.packages('vegan')
+#install.packages('here')
 
 ## attach libraries
 library(tidyverse)
@@ -32,6 +35,7 @@ library(here)
 ## refactor function - low priority
 
 ##Find all releve xlsx within directory
+##This is a COPY of the data that is manually moved to github (or wherever you're working out of)
 
 file.list <- list.files(path = here::here("data", "2021 Format"), full.names = TRUE)
 
