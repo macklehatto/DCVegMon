@@ -341,36 +341,38 @@ text(ord, display = "sites", cex = 0.7, col = "red")
 ```
 
 ```{r}
-#filtering just 2023 data
+#filtering just 2023 data or other data of interest
 
 #Filter for data of interest
 
-dcveg2021 <- AllData %>% filter(AllData[,3] == "LHTS2021" )
+#dcveg2023 <- AllData %>% filter(AllData[,3] == "'23" )
 
-#grabbing other data of interest or reference data
+dcveg2023 <- AllData %>% filter(grepl('23', releveCode))
 
-LHTSandref <-
+#grabbing other data of interest or reference data and consolidating
+
+DataOrd2023 <-
   dplyr::bind_rows(
-    #AllData, 
-    dcveg2021,
+    #AllData,
+    dcveg2023,
     RefData
         )
 
 #Formatting filtered data
 
-LHTSanalysis <- LHTSandref %>%
+OrdAnalysis2023 <- DataOrd2023 %>%
   mutate(midpoint_cc = ifelse(is.na(midpoint_cc), 0, midpoint_cc)) %>%
   pivot_wider(names_from = scientific_name, values_from = midpoint_cc, values_fn = list)
 
 #produce ordination plot of filtered data and reference sites
 
-LHTSanalysis[,-1] <- sapply(LHTSanalysis[,-1], function(x) as.numeric(as.character(x)))
+OrdAnalysis2023[,-1] <- sapply(OrdAnalysis2023[,-1], function(x) as.numeric(as.character(x)))
 
-LHTSanalysis[is.na(LHTSanalysis)] <- 0
+OrdAnalysis2023[is.na(OrdAnalysis2023)] <- 0
 
-LHTSanalysis <- column_to_rownames(LHTSanalysis, var="releveCode")
+OrdAnalysis2023 <- column_to_rownames(OrdAnalysis2023, var="releveCode")
 
-ord <- decorana(LHTSanalysis[,-1])
+ord <- decorana(OrdAnalysis2023[,-1])
 
 plot(ord, type = "n")
 
@@ -379,7 +381,7 @@ plot(ord, type = "n")
  #ordiellipse(ord, groups$Group, display = "sites", kind = "sd", conf = 0.95, draw = "polygon")
 
 sel <- orditorp(ord, dis = "sites", type = "n", col = "blue")
-text(ord, display = "sites", cex = 0.7, col = "red")
+text(ord, display = "sites", cex = 0.4, col = "red")
 ```
 
 ```{r fileindex, include=FALSE}
