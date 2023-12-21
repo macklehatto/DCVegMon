@@ -341,15 +341,16 @@ text(ord, display = "sites", cex = 0.7, col = "red")
 ```
 
 ```{r}
-#filtering just 2023 data or other data of interest
 
-#Filter for data of interest
+###filtering just 2023 data or other data of interest
+
+##Filter for data of interest
 
 #dcveg2023 <- AllData %>% filter(AllData[,3] == "'23" )
 
 dcveg2023 <- AllData %>% filter(grepl('23', releveCode))
 
-#grabbing other data of interest or reference data and consolidating
+##grabbing other data of interest or reference data and consolidating
 
 DataOrd2023 <-
   dplyr::bind_rows(
@@ -358,13 +359,13 @@ DataOrd2023 <-
     RefData
         )
 
-#Formatting filtered data
+##Formatting filtered data
 
 OrdAnalysis2023 <- DataOrd2023 %>%
   mutate(midpoint_cc = ifelse(is.na(midpoint_cc), 0, midpoint_cc)) %>%
   pivot_wider(names_from = scientific_name, values_from = midpoint_cc, values_fn = list)
 
-#produce ordination plot of filtered data and reference sites
+##produce ordination plot of filtered data and reference sites
 
 OrdAnalysis2023[,-1] <- sapply(OrdAnalysis2023[,-1], function(x) as.numeric(as.character(x)))
 
@@ -374,14 +375,23 @@ OrdAnalysis2023 <- column_to_rownames(OrdAnalysis2023, var="releveCode")
 
 ord <- decorana(OrdAnalysis2023[,-1])
 
-plot(ord, type = "n")
+plot(ord, type = "n",
+     ylim = c(-2.5, 2.5),
+     xlim = c(-4.5, 4.5))
+
+orditorp(ord, display = "sites", cex = .32, air = .70)
+
+##the following line displays points for individual species on graph
 
 #points(ord, display = "species", cex = 0.1, pch = 21, col = "black", bg = "gray")
 
  #ordiellipse(ord, groups$Group, display = "sites", kind = "sd", conf = 0.95, draw = "polygon")
 
-sel <- orditorp(ord, dis = "sites", type = "n", col = "blue")
-text(ord, display = "sites", cex = 0.4, col = "red")
+##the following lines are an alternate, more cluttered way to display labels on ordination graph
+
+#sel <- orditorp(ord, dis = "sites", type = "n", col = "blue")
+#text(ord, display = "sites", cex = 0.4, col = "red")
+```
 ```
 
 ```{r fileindex, include=FALSE}
