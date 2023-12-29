@@ -373,7 +373,7 @@ OrdAnalysis2023[is.na(OrdAnalysis2023)] <- 0
 
 OrdAnalysis2023 <- column_to_rownames(OrdAnalysis2023, var="releveCode")
 
-ord <- decorana(OrdAnalysis2023[,-1])
+ord23 <- decorana(OrdAnalysis2023[,-1])
 
 plot(ord, type = "n",
      ylim = c(-2.5, 2.5),
