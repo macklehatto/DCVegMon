@@ -29,7 +29,7 @@ library(here)
 
 ```{r DCrelevedata, include = FALSE}
 
-### This is the code to read in the 2020 and 2021 data ---------------------------------
+### This is the code to read in the 2020 and later data ---------------------------------
 
 ##to do:
 ## refactor function - low priority
@@ -46,19 +46,28 @@ file.list <- list.files(path = here::here("data", "2021 Format"), full.names = T
 woody <- read_xlsx(x, sheet = "Woody", skip = 8)%>%
   clean_names() %>%
   remove_empty(c("rows"))%>%
-  mutate(rarity_status = as.character(rarity_status)) %>%
+  mutate(
+    rarity_status = as.character(rarity_status), 
+    cc = as.numeric(cc)
+    ) %>%
   select("scientific_name", "common_name", "x3" , "physiognamy", "mn_nativity", "mnwi", "rarity_status" = , "id" , "cc" , "cc_range", "x12" , "midpoint_cc", "p", "p_c")
 
 forbs <- read_xlsx(x, sheet = "Forbs", skip = 8)%>%
  janitor::clean_names() %>%
  janitor::remove_empty(c("rows"))%>%
- mutate(rarity_status = as.character(rarity_status))  %>%
+ mutate(
+    rarity_status = as.character(rarity_status), 
+    cc = as.numeric(cc)
+    ) %>%
  select("scientific_name", "common_name", "x3" , "physiognamy", "mn_nativity", "mnwi", "rarity_status" = , "id" , "cc" , "cc_range", "x12" , "midpoint_cc", "p", "p_c")
   
 grasses <- read_xlsx(x, sheet = "Grasses", skip = 8)%>%
   janitor::clean_names() %>%
   janitor::remove_empty(c("rows"))%>%
-  mutate(rarity_status = as.character(rarity_status)) %>%
+  mutate(
+    rarity_status = as.character(rarity_status), 
+    cc = as.numeric(cc)
+    ) %>%
   select("scientific_name", "common_name", "x3" , "physiognamy", "mn_nativity", "mnwi", "rarity_status" = , "id" , "cc" , "cc_range", "x12" , "midpoint_cc", "p", "p_c")
 
 relevecode <- read_xlsx(x, sheet = "Woody", range = "C2:C2", col_names = FALSE) #grabs the relevecode from C2 of Woody sheet
@@ -348,32 +357,34 @@ text(ord, display = "sites", cex = 0.7, col = "red")
 
 #dcveg2023 <- AllData %>% filter(AllData[,3] == "'23" )
 
-dcveg2023 <- AllData %>% filter(grepl('23', releveCode))
+#dcveg2023 <- AllData %>% filter(grepl('23', releveCode))
+
+dcveg2025 <- AllData %>% filter(grepl('2025', releveCode))
 
 ##grabbing other data of interest or reference data and consolidating
 
-DataOrd2023 <-
+DataOrd2025 <-
   dplyr::bind_rows(
     #AllData,
-    dcveg2023,
+    dcveg2025,
     RefData
         )
 
 ##Formatting filtered data
 
-OrdAnalysis2023 <- DataOrd2023 %>%
+OrdAnalysis <- DataOrd2025 %>%
   mutate(midpoint_cc = ifelse(is.na(midpoint_cc), 0, midpoint_cc)) %>%
   pivot_wider(names_from = scientific_name, values_from = midpoint_cc, values_fn = list)
 
 ##produce ordination plot of filtered data and reference sites
 
-OrdAnalysis2023[,-1] <- sapply(OrdAnalysis2023[,-1], function(x) as.numeric(as.character(x)))
+OrdAnalysis[,-1] <- sapply(OrdAnalysis[,-1], function(x) as.numeric(as.character(x)))
 
-OrdAnalysis2023[is.na(OrdAnalysis2023)] <- 0
+OrdAnalysis[is.na(OrdAnalysis)] <- 0
 
-OrdAnalysis2023 <- column_to_rownames(OrdAnalysis2023, var="releveCode")
+OrdAnalysis <- column_to_rownames(OrdAnalysis, var="releveCode")
 
-ord23 <- decorana(OrdAnalysis2023[,-1])
+ord25 <- decorana(OrdAnalysis[,-1])
 
 plot(ord, type = "n",
      ylim = c(-2.5, 2.5),
