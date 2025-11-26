@@ -16,6 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #install.packages('tidyverse')
 #install.packages('vegan')
 #install.packages('here')
+#install.packages("ggplot2")
 
 ## attach libraries
 library(tidyverse)
@@ -23,6 +24,7 @@ library(readxl)
 library(janitor)
 library(dplyr)
 library(here)
+library(ggplot2)
 #library(skimr)  # not used so far
 #library(kableExtra)  #not used so far
 ```
@@ -50,7 +52,7 @@ woody <- read_xlsx(x, sheet = "Woody", skip = 8)%>%
     rarity_status = as.character(rarity_status), 
     cc = as.numeric(cc)
     ) %>%
-  select("scientific_name", "common_name", "x3" , "physiognamy", "mn_nativity", "mnwi", "rarity_status" = , "id" , "cc" , "cc_range", "x12" , "midpoint_cc", "p", "p_c")
+  dplyr::select("scientific_name", "common_name", "x3" , "physiognamy", "mn_nativity", "mnwi", "rarity_status" , "id" , "cc" , "cc_range", "x12" , "midpoint_cc", "p", "p_c")
 
 forbs <- read_xlsx(x, sheet = "Forbs", skip = 8)%>%
  janitor::clean_names() %>%
@@ -59,7 +61,7 @@ forbs <- read_xlsx(x, sheet = "Forbs", skip = 8)%>%
     rarity_status = as.character(rarity_status), 
     cc = as.numeric(cc)
     ) %>%
- select("scientific_name", "common_name", "x3" , "physiognamy", "mn_nativity", "mnwi", "rarity_status" = , "id" , "cc" , "cc_range", "x12" , "midpoint_cc", "p", "p_c")
+ dplyr::select("scientific_name", "common_name", "x3" , "physiognamy", "mn_nativity", "mnwi", "rarity_status" , "id" , "cc" , "cc_range", "x12" , "midpoint_cc", "p", "p_c")
   
 grasses <- read_xlsx(x, sheet = "Grasses", skip = 8)%>%
   janitor::clean_names() %>%
@@ -68,7 +70,7 @@ grasses <- read_xlsx(x, sheet = "Grasses", skip = 8)%>%
     rarity_status = as.character(rarity_status), 
     cc = as.numeric(cc)
     ) %>%
-  select("scientific_name", "common_name", "x3" , "physiognamy", "mn_nativity", "mnwi", "rarity_status" = , "id" , "cc" , "cc_range", "x12" , "midpoint_cc", "p", "p_c")
+  dplyr::select("scientific_name", "common_name", "x3" , "physiognamy", "mn_nativity", "mnwi", "rarity_status" , "id" , "cc" , "cc_range", "x12" , "midpoint_cc", "p", "p_c")
 
 relevecode <- read_xlsx(x, sheet = "Woody", range = "C2:C2", col_names = FALSE) #grabs the relevecode from C2 of Woody sheet
 
@@ -117,7 +119,7 @@ rm(x)
 old <- here("Data", "2019 and prior data", "Compiled Releve Data for R.xlsx")
 
   olddata <- read_excel(old, sheet = "Sheet1", col_name = TRUE) %>%
-    select("Releve", "Species", "Midpoint % Cover") %>%
+    dplyr::select("Releve", "Species", "Midpoint % Cover") %>%
     janitor::clean_names() %>%
     add_column(releveyear = "")
   
@@ -143,7 +145,7 @@ ref_extract <- function(y)
 { 
   refdata <- read_xlsx(y, sheet= 1, skip = 1, col_names = TRUE) %>%
     janitor::remove_empty(c("rows"))%>%
-    select("Genus", "Species", "3Freq" , "4Abund", "5Index")
+    dplyr::select("Genus", "Species", "3Freq" , "4Abund", "5Index")
     
   refcode <- read_xlsx(y, sheet = 1, range = "A1:A1", col_names = FALSE)
   refcode <- list(refcode[[1,1]])
@@ -388,7 +390,7 @@ ord25 <- decorana(OrdAnalysis[,-1])
 
 plot(ord, type = "n",
      ylim = c(-2.5, 2.5),
-     xlim = c(-4.5, 4.5))
+     xlim = c(-4, 4.5))
 
 orditorp(ord, display = "sites", cex = .32, air = .70)
 
