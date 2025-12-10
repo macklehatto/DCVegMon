@@ -272,6 +272,8 @@ all_ref$`4Abund` <-as.numeric(all_ref$`4Abund`)
 ```{r ordination_prep_table, include=FALSE}
 
 ## THIS IS THE START OF THE ORDINATION
+
+####This is the old ordination code
 ##create new dataframe with just the scientific name, midpoint % cover, releve 
 
 ### For Reference:
@@ -302,11 +304,12 @@ all_ref$`4Abund` <-as.numeric(all_ref$`4Abund`)
 #   slice(which.max(midpoint_cc)) %>%
 #   ungroup()
 
+
+### This is the new workflow code (12/10/25)
+
 FilesPreppedForOrd <- list.files(path = "data/Data Prepared for Ordination", pattern = "\\.csv$", full.names = TRUE)
 
 DataframesForOrd <- lapply(FilesPreppedForOrd, read.csv)
-
-#### 12/9/25 this is erroring because the columns don't match in the dataframes. 
 
 AllData <-
   dplyr::bind_rows(
@@ -324,6 +327,9 @@ AllData <-
 ## Create pivot table with species (row), releve (column) and midpoint percent cover (data)
 
 dcveg <- AllData %>%
+  mutate(releveCode = paste(releveSite, releveyear, sep = "")) %>%
+  dplyr::select(-releveSite) %>%
+  dplyr::select(-releveyear) %>%
   mutate(midpoint_cc = ifelse(is.na(midpoint_cc), 0, midpoint_cc)) %>%
   pivot_wider(names_from = scientific_name, values_from = midpoint_cc, values_fn = list)
 
@@ -342,17 +348,17 @@ library(ggplot2)
 #groups <- read.csv("N:/PARKS/Natural Resources/Monitoring/Transects, Releves, and Photo Monitoring/Archived Monitoring Data/Analyzed Releve Data/RScript/Groups.csv", row.names=1, header = TRUE, sep = ",")
 
  
-dcveg[,-1] <- sapply(dcveg[,-1], function(x) as.numeric(as.character(x)))
+dcveg[,-2] <- sapply(dcveg[,-2], function(x) as.numeric(as.character(x)))
 
 dcveg[is.na(dcveg)] <- 0
 
 dcveg <- column_to_rownames(dcveg, var="releveCode")
 
-ord <- decorana(dcveg[,-1])
+ord <- decorana(dcveg[,-2])
 
 shnam <- make.cepnames(names(dcveg))
 
-#plot(ord, type = "n")
+plot(ord, type = "n")
 
 #points(ord, display = "species", cex = 0.1, pch = 21, col = "black", bg = "gray")
 
