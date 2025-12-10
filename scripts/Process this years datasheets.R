@@ -15,18 +15,23 @@ library(janitor)
 library(dplyr)
 library(here)
 library(ggplot2)
-#library(skimr)  # not used so far
-#library(kableExtra)  #not used so far
 
-### This is the code to read in the 2020 and later data ---------------------------------
 
-##to do:
-## refactor function - low priority
+## This script takes your individual releve datasheets and merges them into a single .csv file.
+## IMPORTANT: 
+## (1) Your datasheets must be prepped. The releve code (releve number+YYYY) must be in cell B2 of the "woody" tab. 
+## (2) Copies of all the .xlsx files must be in Data > This Years Releve Datasheets
+## (3) Answer this question:
 
-##Find all releve xlsx within directory
+ThisYear <- 1999 #What year is it? 
+
+SavingFileIn <- paste("data/Processed Releve Data/", ThisYear, ".csv", sep = "")
+
+
+##Finds all releve xlsx within directory
 ##This is a COPY of the data that is manually moved to github (or wherever you're working out of)
 
-file.list <- list.files(path = here::here("data", "2022 data"), full.names = TRUE, recursive = TRUE)
+file.list <- list.files(path = here::here("data", "This Years Releve Datasheets"), full.names = TRUE, recursive = TRUE)
 
 ## Extract data from woody, forbs and grasses worksheets
 
@@ -116,7 +121,20 @@ for (x in file.list){
 ##removes all rows with greater than 10 "NA" cells 
 
 hi <- apply(all_df, 1, function(x) sum(is.na(x)))
-Releve_Observations_2022 <- all_df[hi<10,]
+Releve_Observations <- all_df[hi<10,]
 
-write.csv(Releve_Observations_2022, file = "data/2022 Releve Observations.csv", row.names = TRUE)
+## Creates the .csv
 
+write.csv(Releve_Observations, file = SavingFileIn, col.names = TRUE, row.names= false)
+
+## Creates a new folder called "<ThisYear> data" and copies the contents of This Years Releve Datasheets into it
+
+newfolder <- paste(ThisYear, "data")
+
+file.copy(from = "data\This Years Releve Datasheets", to = newfolder, recursive = TRUE)
+
+## Cleans up the environment
+
+rm(single_df)
+rm(hi)
+rm(x)

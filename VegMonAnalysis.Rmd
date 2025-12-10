@@ -36,6 +36,7 @@ library(ggplot2)
 ##to do:
 ## refactor function - low priority
 
+##THIS CAN BE SPLIT OUT TO RUN ONLY ONCE - AT THE END ADD CODE TO SAVE IT AS .CSV IN A SPECIFIC DATA FOLDER FOR PROCESSED DATA --DONE on 12/9. New script file is called "Process this years datasheets.R"
 ##Find all releve xlsx within directory
 ##This is a COPY of the data that is manually moved to github (or wherever you're working out of)
 
@@ -112,7 +113,8 @@ rm(x)
 
 ```{r DC_Old_Data, include = FALSE}
 
-### This is the code to read in the processed data from 2019 and prior (just includes releve code, species and midpoint % cover)  -------
+###THIS ONLY HAPPENS ONCE 
+###This is the code to read in the processed data from 2019 and prior (just includes releve code, species and midpoint % cover)  -------
 
 ## Change this to the file for the 2019 and prior data that was compiled for R previously
 
@@ -135,7 +137,8 @@ old <- here("Data", "2019 and prior data", "Compiled Releve Data for R.xlsx")
 
 ```{r ReferenceSiteData, include=FALSE}
 
-### This is the code to load in the GRG Reference Site Data ---------------------
+### THIS HAPPENS ONLY ONCE
+###This is the code to load in the GRG Reference Site Data ---------------------
 
 
 file.ls <- list.files(here::here("data", "GRG Reference"), pattern = '\\.xlsx', full.names = TRUE)
@@ -183,7 +186,9 @@ all_ref$`4Abund` <-as.numeric(all_ref$`4Abund`)
 
 ```{r AddCanopySubcanopyEtc, include=FALSE}
 # 
-# file.ls <- list.files(here::here("data", "GRG Reference"), pattern = '\\.xlsx', full.names = TRUE)
+## ON 12/9/25 CHRIS AND MEG DIDN'T REALLY REMEMBER DOING THIS. KEEP FOR FUTURE INQUIRY
+
+#file.ls <- list.files(here::here("data", "GRG Reference"), pattern = '\\.xlsx', full.names = TRUE)
 # 
 # ref_extract2 <- function(y)
 # { 
@@ -266,6 +271,7 @@ all_ref$`4Abund` <-as.numeric(all_ref$`4Abund`)
 
 ```{r ordination_prep_table, include=FALSE}
 
+## THIS IS THE START OF THE ORDINATION
 ##create new dataframe with just the scientific name, midpoint % cover, releve 
 
 ### For Reference:
@@ -273,36 +279,42 @@ all_ref$`4Abund` <-as.numeric(all_ref$`4Abund`)
 ### all_df = the complete 2020 and 2021 releves
 ### ref_data = the GRG reference site data 
 
-DCData1 <- all_df[ ,c("scientific_name", "midpoint_cc", "releveCode")] %>%
-  group_by(scientific_name, releveCode) %>%
-  slice(which.max(midpoint_cc)) %>%
-  ungroup()
+# DCData1 <- all_df[ ,c("scientific_name", "midpoint_cc", "releveCode")] %>%
+#   group_by(scientific_name, releveCode) %>%
+#   slice(which.max(midpoint_cc)) %>%
+#   ungroup()
+# 
+# DCData2 <- olddata[ , c("species", "midpoint_percent_cover", "releve")] %>%
+#      dplyr::rename("scientific_name" = "species", 
+#                 "midpoint_cc" = "midpoint_percent_cover", 
+#                 "releveCode" = "releve")%>%
+#   group_by(scientific_name, releveCode) %>%
+#   slice(which.max(midpoint_cc)) %>%
+#   ungroup()
 
-DCData2 <- olddata[ , c("species", "midpoint_percent_cover", "releve")] %>%
-     dplyr::rename("scientific_name" = "species", 
-                "midpoint_cc" = "midpoint_percent_cover", 
-                "releveCode" = "releve")%>%
-  group_by(scientific_name, releveCode) %>%
-  slice(which.max(midpoint_cc)) %>%
-  ungroup()
-
-RefData <- all_ref[ , c("Genus", "Species", "4Abund", "...6")]
+##RefData <- all_ref[ , c("Genus", "Species", "4Abund", "...6")]
   
-RefData <- unite(RefData, "scientific_name", Genus:Species, sep = " ", remove = TRUE) 
+##RefData <- unite(RefData, "scientific_name", Genus:Species, sep = " ", remove = TRUE) 
 
-RefData <- dplyr::rename(RefData, "midpoint_cc" = "4Abund", 
-                "releveCode" = "...6") %>%
-  group_by(scientific_name, releveCode) %>%
-  slice(which.max(midpoint_cc)) %>%
-  ungroup()
-  
+# RefData <- dplyr::rename(RefData, "midpoint_cc" = "4Abund", 
+#                 "releveCode" = "...6") %>%
+#   group_by(scientific_name, releveCode) %>%
+#   slice(which.max(midpoint_cc)) %>%
+#   ungroup()
+
+FilesPreppedForOrd <- list.files(path = "data/Data Prepared for Ordination", pattern = "\\.csv$", full.names = TRUE)
+
+DataframesForOrd <- lapply(FilesPreppedForOrd, read.csv)
+
+#### 12/9/25 this is erroring because the columns don't match in the dataframes. 
 
 AllData <-
   dplyr::bind_rows(
     #AllData, 
-    DCData1, 
-    DCData2, 
-    RefData 
+    #DCData1, 
+    #DCData2,
+    #RefData,
+     DataframesForOrd
         )
 
 ```
@@ -338,14 +350,18 @@ dcveg <- column_to_rownames(dcveg, var="releveCode")
 
 ord <- decorana(dcveg[,-1])
 
-plot(ord, type = "n")
+shnam <- make.cepnames(names(dcveg))
 
-points(ord, display = "species", cex = 0.1, pch = 21, col = "black", bg = "gray")
+#plot(ord, type = "n")
+
+#points(ord, display = "species", cex = 0.1, pch = 21, col = "black", bg = "gray")
 
  #ordiellipse(ord, groups$Group, display = "sites", kind = "sd", conf = 0.95, draw = "polygon")
 
+sel2 <- orditorp(ord, display = "sites", type = 't', pcol = "gray", pch = "+")
+
 sel <- orditorp(ord, dis = "sites", type = "n", col = "blue")
-text(ord, display = "sites", cex = 0.7, col = "red")
+text(ord, display = "sites", cex = 0.7, col = "purple")
 
  #sel2 <- orditorp(ord, dis = "spec", cex = 0.7, col = "red")
 
