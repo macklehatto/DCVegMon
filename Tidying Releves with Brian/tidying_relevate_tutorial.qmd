@@ -1,0 +1,311 @@
+---
+title: "Tidying Vegetation Relevé Data"
+author: "Your Name"
+date: today
+format:
+  html:
+    code-fold: false
+    toc: true
+    toc-depth: 3
+    theme: cosmo
+    df-print: paged
+execute:
+  warning: false
+  message: false
+---
+
+## Overview
+
+This tutorial walks through a workflow for tidying vegetation survey data collected using the relevé method. The data is stored in an Excel file with a non-standard layout that requires careful extraction and reshaping.
+
+**Learning objectives:**
+
+- Extract data from Excel files with complex layouts
+- Combine multiple columns representing similar data
+- Identify and group related observations using pattern matching
+- Iterate across groups to restructure data
+- Extract and join metadata to create analysis-ready datasets
+
+## Setup
+
+First, load the required packages. We'll use the tidyverse for data manipulation, along with readxl for Excel import and janitor for cleaning column names.
+
+```{r setup}
+library(tidyverse)
+library(readxl)
+library(janitor)
+```
+
+## Reading the Raw Data
+
+The vegetation data is stored in an Excel file with metadata in the header rows and species observations below. We skip the first 5 rows to get to the actual data table.
+
+```{r read-data}
+temp <-
+  read_excel(
+    "Copy of LHTS 1 2016.xlsx",
+    sheet = "Veg Data Sheet",
+    skip = 5
+  ) %>% 
+  clean_names() 
+```
+
+**Key points:**
+
+- `skip = 5` bypasses the header information we'll extract separately later
+- `clean_names()` standardizes column names to lowercase with underscores
+
+## Tidying Species Observations
+
+### The Challenge
+
+The Excel sheet has species observations split across multiple column sets. Species can be grouped under hierarchical categories (e.g., "Trees", "Shrubs"), with group names appearing as regular observations but identifiable by a specific pattern.
+
+### Step 1: Combine Column Sets
+
+First, we select species and cover data from the first set of columns, then bind it with the second set.
+
+```{r combine-columns}
+temp_grouped <- 
+  temp %>% 
+  # Select species and cover columns 1:
+  select(
+    cs = cs_1,
+    species_name = species_name_2
+  ) %>% 
+  
+  # Bind with species and cover columns 2:
+  bind_rows(
+    temp %>% 
+      select(
+        cs = cs_6,
+        species_name = species_name_7
+      )
+  ) %>% 
+  
+  # Remove blank rows:
+  drop_na(matches("species"))
+```
+
+**What's happening:**
+
+- We extract two sets of columns representing the same type of data
+- `bind_rows()` stacks them vertically
+- `drop_na()` removes rows where species_name is blank
+- Renaming columns during `select()` ensures consistent names
+
+### Step 2: Identify Groups
+
+Species groups can be identified by a pattern: they contain an uppercase letter followed by a number (e.g., "A1", "B2").
+
+```{r identify-groups}
+temp_grouped <-
+  temp_grouped %>% 
+  mutate(
+    group_id = 
+      species_name %>% 
+      str_detect("[A-Z][0-9]") %>% 
+      cumsum()
+  )
+
+# Preview the grouping structure:
+temp_grouped %>% 
+  select(species_name, group_id) %>% 
+  head(10)
+```
+
+**How it works:**
+
+- `str_detect()` returns TRUE for group headers, FALSE for species
+- `cumsum()` creates sequential group IDs that increment at each group header
+- This assigns each species to its corresponding group
+
+### Step 3: Restructure by Group
+
+Now we iterate across each group to extract the group name and create a tidy structure.
+
+```{r restructure-data}
+species_observations_tidy <-
+  temp_grouped %>% 
+  
+  # Extract unique group IDs:
+  pull(group_id) %>% 
+  unique() %>% 
+  
+  # Iterate across each ID:
+  map_df(
+    function(id) {
+      temp_grouped %>% 
+        
+        # Subset to the current group:
+        filter(group_id == id) %>%
+        
+        # Extract the group name (first row):
+        mutate(
+          group = pull(., species_name)[[1]]
+        ) %>% 
+        
+        # Remove the group header row:
+        slice(-1) %>% 
+        
+        # Select and reorder columns:
+        select(
+          group, 
+          species_name, 
+          cs
+        )
+    }
+  ) %>% 
+  
+  # Add a site visit identifier:
+  mutate(
+    site_visit = "boy_howdy",
+    .before = group
+  )
+
+# Preview the result:
+head(species_observations_tidy, 10)
+```
+
+**Key techniques:**
+
+- `map_df()` iterates across group IDs and row-binds the results
+- The first row of each group contains the group name
+- `slice(-1)` removes that header row after extracting the information
+- `.before = group` positions the new column appropriately
+
+## Extracting Visit-Level Metadata
+
+The top rows of the Excel sheet contain visit-level information like site, observer, county, and date. Let's extract and reshape this.
+
+### Step 1: Read Metadata Region
+
+```{r read-metadata}
+site_visits_raw <-
+  read_excel(
+    "Copy of LHTS 1 2016.xlsx",
+    sheet = "Veg Data Sheet",
+    range = "A1:B100"
+  ) %>% 
+  clean_names() %>% 
+  slice_head(n = 4)
+
+site_visits_raw
+```
+
+### Step 2: Reshape to One Row
+
+The metadata is currently in a "label: value" format across multiple rows. We'll pivot it to a single-row format.
+
+```{r reshape-metadata}
+site_visits <-
+  site_visits_raw %>% 
+  mutate(
+    # Create future column names:
+    var = c("site", "observer", "county", "date"),
+    
+    # Extract values (handling multiple possible columns):
+    value = 
+      coalesce(x1, x2) %>% 
+      str_remove(".*:") %>%  # Remove the label part
+      str_trim(),
+    
+    .keep = "none"
+  ) %>% 
+  
+  # Reshape to wide format:
+  pivot_wider(
+    names_from = var,
+    values_from = value
+  )
+
+site_visits
+```
+
+**Steps:**
+
+- `coalesce()` handles cases where the value might be in either column
+- `str_remove(".*:")` removes everything up to and including the colon
+- `pivot_wider()` converts from long to wide format
+
+### Step 3: Clean and Enhance
+
+Finally, we clean the site name, add a method column, and create a unique primary key.
+
+```{r clean-metadata}
+site_visits <-
+  site_visits %>% 
+  mutate(
+    # Add method column:
+    method = "Releve",
+    
+    # Clean site name:
+    site = 
+      site %>% 
+      str_remove_all("Releve ") %>%
+      str_extract("[A-Z]{3,5} ?[0-9]?-?[0-9]?")
+  ) %>% 
+  
+  # Create a unique primary key:
+  mutate(
+    date = mdy(date),
+    key = 
+      str_c(
+        "boy_howdy",  # Site identifier base
+        as.integer(date),
+        sep = "-"
+      ),
+    .before = site
+  )
+
+site_visits
+```
+
+**Primary key creation:**
+
+- Combines a site identifier with the date as an integer
+- This creates a unique identifier for each site visit
+- `.before = site` places the key column first
+
+## Joining the Data
+
+With both datasets prepared, you can join them using the shared key:
+
+```{r join-example, eval=FALSE}
+# Add the visit key to species observations:
+species_observations_tidy <-
+  species_observations_tidy %>% 
+  left_join(
+    site_visits %>% select(key),
+    by = c("site_visit" = "key")
+  )
+
+# Or join to add all metadata:
+complete_data <-
+  species_observations_tidy %>% 
+  left_join(site_visits, by = c("site_visit" = "key"))
+```
+
+## Summary
+
+This workflow demonstrates several advanced tidyverse techniques:
+
+1. **Column binding with renaming** to combine similar data from different locations
+2. **Pattern detection with `str_detect()`** to identify hierarchical structures
+3. **Cumulative sum grouping** to assign group memberships
+4. **Functional iteration with `map_df()`** to process groups independently
+5. **Pivoting from long to wide** format for metadata
+6. **String manipulation** to extract and clean values
+7. **Primary key creation** to enable relational joins
+
+The result is a tidy dataset ready for analysis, with each row representing a species observation linked to its group and site visit metadata.
+
+## Next Steps
+
+Consider:
+
+- Parameterizing the site visit identifier instead of hardcoding "boy_howdy"
+- Adding data validation checks (e.g., expected species names)
+- Generalizing the workflow to handle multiple files in a batch
+- Adding taxonomic information or trait data through additional joins
+- Calculating community metrics (richness, diversity, etc.)
