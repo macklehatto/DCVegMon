@@ -157,7 +157,7 @@ site_visits <-
   
   mutate(
     key = "boy_howdy",
-    .before = site
+    .before = site 
   ) %>% 
   
   # How to add site date pairs as a primary key
@@ -177,3 +177,9 @@ site_visits <-
 
 # get the GIS GlobalIDs for releve points and map to all the site codes we've
 # ever used
+
+# Load and initialize the arcgisbinding
+library(arcgisbinding)
+arc.check_product()
+
+sde_filepath <- arc.open("N:\PARKS\Natural Resources\GIS\ParksEditor@ParkEditor.sde")
